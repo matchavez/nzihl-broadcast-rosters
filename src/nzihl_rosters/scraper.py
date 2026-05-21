@@ -1,0 +1,193 @@
+"""Parse an NZIHL stats_1team.cfm HTML page into player + goalie lists.
+
+The page is server-rendered HTML with two tables we care about:
+PLAYER STATISTICS and GOALIE STATISTICS. Each player row contains
+the jersey number, position, GP, G, A, and any flag (C / IM / AF / RO).
+We parse with regex against the link-wrapped player cells since the
+table cell structure is consistent across all five teams.
+"""
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass
+from html import unescape
+from urllib.parse import urlencode
+
+from .http import fetch
+from .overrides import normalize_name
+
+
+STATS_URL = "https://www.nzihl.com/leagues/stats_1team.cfm"
+
+# Match a player anchor like:
+#   [A Gagnon](URL "Alex Gagnon") IM [Alex Gagnon](URL) IM
+# The third occurrence of the full name (with title attribute) is the most reliable.
+# Regex captures: full name, flag (if any).
+_PLAYER_LINK = re.compile(
+    r'<a[^>]*href="[^"]*playerID=(\d+)[^"]*"[^>]*title="([^"]+)"[^>]*>'
+)
+
+
+@dataclass
+class SkaterRow:
+    jersey: str
+    last: str
+    first: str
+    position: str
+    gp: int
+    g: int
+    a: int
+    flag: str  # "" / "C" / "A" / "IM" / "AF" / "RO"
+
+
+@dataclass
+class GoalieRow:
+    jersey: str
+    last: str
+    first: str
+    gp: int
+    gaa: str
+    sv_pct: str
+    flag: str
+
+
+def fetch_team_html(team_id: int, client_id: int = 7131, league_id: int = 35499) -> str:
+    """Download the stats_1team page HTML for `team_id`."""
+    params = {"clientid": client_id, "leagueid": league_id, "teamid": team_id}
+    url = f"{STATS_URL}?{urlencode(params)}"
+    return fetch(url)
+
+
+def _split_first_last(full_name: str) -> tuple[str, str]:
+    """Split 'Eli Seo Jun Paek' -> ('Eli Seo Jun', 'Paek').
+
+    Hyphenated surnames stay whole ('Joel Keogh-Cope' -> ('Joel', 'Keogh-Cope')).
+    Two-word surnames are detected from a small allowlist of particles.
+    """
+    parts = full_name.strip().split()
+    if len(parts) == 1:
+        return ("", parts[0])
+    if len(parts) == 2:
+        return (parts[0], parts[1])
+    # Two-word surnames like "Hayward Jones" — detect by checking the most common
+    # NZIHL multi-word surnames; default to splitting at the last space.
+    multi_word = {"hayward jones", "te rangi henare"}
+    tail2 = " ".join(parts[-2:]).lower()
+    if tail2 in multi_word:
+        return (" ".join(parts[:-2]), " ".join(parts[-2:]))
+    return (" ".join(parts[:-1]), parts[-1])
+
+
+# Detect the table type by looking for either the SKATERS or GOALIES header.
+_PLAYER_STATS_RE = re.compile(r"PLAYER STATISTICS[\s\S]*?TEAM TOTALS", re.IGNORECASE)
+_GOALIE_STATS_RE = re.compile(r"GOALIE STATISTICS[\s\S]*?TEAM TOTALS", re.IGNORECASE)
+
+# Match a table row, capturing the entire row HTML.
+_TR_RE = re.compile(r"<tr[^>]*>([\s\S]*?)</tr>", re.IGNORECASE)
+# Match each <td>'s text content.
+_TD_RE = re.compile(r"<td[^>]*>([\s\S]*?)</td>", re.IGNORECASE)
+_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _clean(td_html: str) -> str:
+    """Strip tags and decode entities."""
+    return unescape(_TAG_RE.sub("", td_html)).strip()
+
+
+def _row_flag(row_html: str) -> str:
+    """Detect the trailing flag for a player row.
+
+    NZIHL renders the flag after the second player link, e.g. `</a> IM`.
+    We look for ` C` / ` A` / ` IM` / ` AF` / ` RO` at end of the
+    player-name cell (the first cell that contains an anchor).
+    """
+    # find first cell that contains an anchor
+    for td in _TD_RE.findall(row_html):
+        if "<a" in td:
+            text = _clean(td)
+            # last token after the player name
+            tail = text.split()[-1] if text else ""
+            if tail in {"C", "A", "IM", "AF", "RO"}:
+                return tail
+            return ""
+    return ""
+
+
+def _player_full_name(row_html: str) -> str | None:
+    """Pull the player's full name from the title="..." attribute."""
+    m = _PLAYER_LINK.search(row_html)
+    if not m:
+        return None
+    return m.group(2)
+
+
+def parse_skaters(html: str, team_id: int) -> list[SkaterRow]:
+    block = _PLAYER_STATS_RE.search(html)
+    if not block:
+        return []
+    rows: list[SkaterRow] = []
+    for row_match in _TR_RE.finditer(block.group(0)):
+        row_html = row_match.group(1)
+        full_name = _player_full_name(row_html)
+        if not full_name:
+            continue
+        cells = [_clean(td) for td in _TD_RE.findall(row_html)]
+        # cells[0] is empty (player photo column), cells[1] is the player anchor.
+        # cells[2] = jersey #, cells[3] = position, cells[4] = GP, cells[5] = G, cells[6] = A, ...
+        if len(cells) < 7:
+            continue
+        jersey = cells[2] or "-"
+        position = cells[3] or ""
+        try:
+            gp = int(cells[4]) if cells[4] not in ("", "-") else 0
+            g = int(cells[5]) if cells[5] not in ("", "-") else 0
+            a = int(cells[6]) if cells[6] not in ("", "-") else 0
+        except ValueError:
+            continue
+        first_raw, last_raw = _split_first_last(full_name)
+        first, last = normalize_name(first_raw, last_raw, team_id, jersey)
+        flag = _row_flag(row_html)
+        rows.append(SkaterRow(
+            jersey=jersey, last=last.upper() if last else "",
+            first=first, position=position,
+            gp=gp, g=g, a=a, flag=flag,
+        ))
+    return rows
+
+
+def parse_goalies(html: str, team_id: int) -> list[GoalieRow]:
+    block = _GOALIE_STATS_RE.search(html)
+    if not block:
+        return []
+    rows: list[GoalieRow] = []
+    for row_match in _TR_RE.finditer(block.group(0)):
+        row_html = row_match.group(1)
+        full_name = _player_full_name(row_html)
+        if not full_name:
+            continue
+        cells = [_clean(td) for td in _TD_RE.findall(row_html)]
+        # cells: [photo, anchor, #, GP, W, L, T, OTL, SO, MP, GA, GAA, GSAA, SA, SV, SV%, ...]
+        if len(cells) < 16:
+            continue
+        jersey = cells[2] or "-"
+        try:
+            gp = int(cells[3]) if cells[3] not in ("", "-") else 0
+        except ValueError:
+            gp = 0
+        gaa = cells[11] or "—"
+        sv_pct = cells[15] or "—"
+        first_raw, last_raw = _split_first_last(full_name)
+        first, last = normalize_name(first_raw, last_raw, team_id, jersey)
+        flag = _row_flag(row_html)
+        rows.append(GoalieRow(
+            jersey=jersey, last=last.upper() if last else "",
+            first=first, gp=gp, gaa=gaa, sv_pct=sv_pct, flag=flag,
+        ))
+    return rows
+
+
+def scrape_team(team_id: int, html: str | None = None) -> tuple[list[SkaterRow], list[GoalieRow]]:
+    """Scrape a team's roster. Pass `html` to bypass the network (testing)."""
+    if html is None:
+        html = fetch_team_html(team_id)
+    return parse_skaters(html, team_id), parse_goalies(html, team_id)
