@@ -5,6 +5,10 @@ schedule page (`schedules.cfm`) to the metadata we need to render
 a roster (colours, display name, home venue).
 """
 from dataclasses import dataclass
+from pathlib import Path
+
+# Logos bundled with the package (transparent PNGs, ~320px square).
+_LOGO_DIR = Path(__file__).resolve().parent / "assets" / "logos"
 
 
 @dataclass(frozen=True)
@@ -17,6 +21,14 @@ class Team:
     title_hex: str               # team-name text colour drawn on the band
     home_venue: str              # short venue label for the footer
     short_code: str              # 3-letter code (CRD/BSW/...)
+    logo_file: str = ""          # filename in assets/logos/ (defaults to short_code.png)
+
+    @property
+    def logo_path(self) -> Path | None:
+        """Absolute path to this team's bundled logo, or None if missing."""
+        name = self.logo_file or f"{self.short_code.lower()}.png"
+        p = _LOGO_DIR / name
+        return p if p.exists() else None
 
 
 # ---- Registry (NZIHL men's, 2026) --------------------------------
