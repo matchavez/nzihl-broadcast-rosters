@@ -9,8 +9,7 @@ from __future__ import annotations
 # (team_id, jersey_number) -> (override_last, override_first | None)
 # `override_first=None` means leave first name alone (just fix the surname).
 SURNAME_OVERRIDES: dict[tuple[int, str], tuple[str, str | None]] = {
-    # Canterbury Red Devils #7 — NZIHL has him as "Henare", real name is Te Rangi Henare.
-    (675633, "7"): ("Te Rangi Henare", None),
+    # No active overrides. Add entries here as NZIHL name issues are flagged.
 }
 
 

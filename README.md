@@ -2,7 +2,7 @@
 
 Auto-generated single-page roster PDFs for the NZIHL broadcast booth. Pulls
 live rosters and the upcoming schedule from `nzihl.com`, applies a few
-name corrections the league hasn't fixed yet (e.g. **Te Rangi Henare**),
+name corrections the league hasn't fixed yet,
 and renders one PDF per upcoming series.
 
 Runs daily on GitHub Actions; PDFs land as a release artifact attached
@@ -25,7 +25,7 @@ For each upcoming series within the next 4 days, one A4 portrait PDF:
 ```
 src/nzihl_rosters/
   teams.py         # registry: team_id, display name, colours, home venue
-  overrides.py     # explicit name overrides (Te Rangi Henare) + title-casing
+  overrides.py     # explicit name overrides + title-casing
   scraper.py       # parses stats_1team.cfm into Skater/GoalieRow lists
   schedule.py      # parses schedules.cfm into a list of upcoming Games
   layout.py        # the single-page PDF builder
@@ -83,7 +83,6 @@ Edit `src/nzihl_rosters/overrides.py`:
 
 ```python
 SURNAME_OVERRIDES = {
-    (675633, "7"): ("Te Rangi Henare", None),
     # (team_id, jersey_number): (correct_surname, correct_first_or_None)
 }
 ```

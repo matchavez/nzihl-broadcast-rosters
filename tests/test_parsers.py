@@ -25,9 +25,9 @@ def test_skaters_parse_correctly():
     assert g.flag == "IM"
     assert g.position == "F"
 
-    # Te Rangi Henare override: jersey 7 surname should NOT be plain "Henare"
+    # Jersey 7: no override — surname is "Henare" as NZIHL lists it
     henare = by_num["7"]
-    assert henare.last == "TE RANGI HENARE", f"got {henare.last!r}"
+    assert henare.last == "HENARE", f"got {henare.last!r}"
     assert henare.first == "Garth"
 
     # Lowercase auto-title-casing: "harry louw" → "Harry" / "LOUW"
