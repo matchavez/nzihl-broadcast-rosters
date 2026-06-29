@@ -170,10 +170,15 @@ def build_roster_pdf(
         c.line(x + 18*mm, cur_y + 2.5, x + col_w, cur_y + 2.5)
         cur_y -= 3*mm
 
-        n = len(played_goalies)
+        # Feature the top 2 goalies (by minutes played) as cards; any others become a
+        # compact "Also dressed" depth line. Teams with <=2 goalies render unchanged.
+        carded = sorted(played_goalies, key=lambda g: (-g.mp, _jersey_sort_key(g.jersey)))
+        extras = carded[2:]
+        carded = carded[:2]
+        n = len(carded)
         goalie_card_h = 19*mm
         gw = (col_w - max(n-1, 0)*3*mm) / max(n, 1)
-        for i, g in enumerate(played_goalies):
+        for i, g in enumerate(carded):
             gx = x + i*(gw + 3*mm)
             c.setFillColor(DIM_BG); c.setStrokeColor(RULE); c.setLineWidth(0.4)
             c.rect(gx, cur_y - goalie_card_h, gw, goalie_card_h, fill=1, stroke=1)
@@ -201,7 +206,17 @@ def build_roster_pdf(
                          f"GP {g.gp}  ·  GAA {g.gaa}")
             c.drawString(gx + 3*mm, cur_y - goalie_card_h + 1.5*mm,
                          f"SV {g.sv_pct}")
-        cur_y -= goalie_card_h + 5*mm
+        cur_y -= goalie_card_h
+        if extras:
+            cur_y -= 4*mm
+            label = "Also dressed:   " + "    ·    ".join(
+                f"#{g.jersey} {g.last} ({g.gp} GP, {g.sv_pct})" for g in extras)
+            fs = 7.5
+            while c.stringWidth(label, "Helvetica", fs) > col_w and fs > 6:
+                fs -= 0.5
+            c.setFont("Helvetica", fs); c.setFillColor(MUTED)
+            c.drawString(x, cur_y, label)
+        cur_y -= 5*mm
 
         # skaters header
         c.setFillColor(MUTED); c.setFont("Helvetica-Bold", 8)

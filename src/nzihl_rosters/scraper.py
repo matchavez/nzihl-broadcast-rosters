@@ -49,6 +49,7 @@ class GoalieRow:
     gaa: str
     sv_pct: str
     flag: str
+    mp: int = 0
 
 
 def fetch_team_html(team_id: int, client_id: int = 7131, league_id: int = 35499) -> str:
@@ -176,12 +177,16 @@ def parse_goalies(html: str, team_id: int) -> list[GoalieRow]:
             gp = 0
         gaa = cells[11] or "—"
         sv_pct = cells[15] or "—"
+        try:
+            mp = int(cells[9]) if cells[9] not in ("", "-") else 0
+        except ValueError:
+            mp = 0
         first_raw, last_raw = _split_first_last(full_name)
         first, last = normalize_name(first_raw, last_raw, team_id, jersey)
         flag = _row_flag(row_html)
         rows.append(GoalieRow(
             jersey=jersey, last=last.upper() if last else "",
-            first=first, gp=gp, gaa=gaa, sv_pct=sv_pct, flag=flag,
+            first=first, gp=gp, gaa=gaa, sv_pct=sv_pct, flag=flag, mp=mp,
         ))
     return rows
 
