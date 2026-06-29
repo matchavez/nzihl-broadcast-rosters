@@ -170,11 +170,11 @@ def build_roster_pdf(
         c.line(x + 18*mm, cur_y + 2.5, x + col_w, cur_y + 2.5)
         cur_y -= 3*mm
 
-        # Feature the top 2 goalies (by minutes played) as cards; any others become a
-        # compact "Also dressed" depth line. Teams with <=2 goalies render unchanged.
+        # Feature the top 3 goalies (by minutes played) as cards; any beyond 3 become a
+        # compact "Also dressed" depth line. Teams with <=3 goalies render unchanged.
         carded = sorted(played_goalies, key=lambda g: (-g.mp, _jersey_sort_key(g.jersey)))
-        extras = carded[2:]
-        carded = carded[:2]
+        extras = carded[3:]
+        carded = carded[:3]
         n = len(carded)
         goalie_card_h = 19*mm
         gw = (col_w - max(n-1, 0)*3*mm) / max(n, 1)
