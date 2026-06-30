@@ -17,7 +17,7 @@ from .http import fetch
 from .overrides import normalize_name
 
 
-STATS_URL = "https://www.nzihl.com/leagues/stats_1team.cfm"
+STATS_URL = "https://admin.esportsdesk.com/leagues/stats_1team.cfm"
 
 # Match a player anchor like:
 #   [A Gagnon](URL "Alex Gagnon") IM [Alex Gagnon](URL) IM

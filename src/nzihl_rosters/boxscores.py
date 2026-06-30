@@ -27,7 +27,7 @@ from .schedule import Game, fetch_schedule_html, upcoming_within
 LEAGUE = "NZIHL"
 CLIENT_ID = 7131
 LEAGUE_ID = 35499
-BOXSCORE_URL = "https://www.nzihl.com/leagues/hockey_boxscores.cfm"
+BOXSCORE_URL = "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm"
 
 # Any boxscore link on the schedule (only present for played games).
 _SCHED_GAMEID_RE = re.compile(r"hockey_boxscores\.cfm\?[^\"'<> ]*gameid=(\d+)", re.IGNORECASE)
