@@ -40,7 +40,7 @@ TEAMS: dict[str, Team] = {
         primary_hex="#DC0000",
         accent_hex="#000000",
         title_hex="#FFFFFF",      # white on red
-        home_venue="Alpine Ice Sports Centre, Christchurch",
+        home_venue="Alpine Ice Centre",
         short_code="CRD",
     ),
     "SWARM": Team(
@@ -50,7 +50,7 @@ TEAMS: dict[str, Team] = {
         primary_hex="#782738",
         accent_hex="#F7AF28",
         title_hex="#F7AF28",      # honey on maroon
-        home_venue="Paradice Botany Downs, Auckland",
+        home_venue="Paradice Botany",
         short_code="BSW",
     ),
     "ADMIRALS": Team(
@@ -60,7 +60,7 @@ TEAMS: dict[str, Team] = {
         primary_hex="#081D48",
         accent_hex="#F7BE11",
         title_hex="#F7BE11",      # gold on navy
-        home_venue="Avondale Skate & Sport, Auckland",
+        home_venue="Paradice Avondale",
         short_code="WAA",
     ),
     "THUNDER": Team(
