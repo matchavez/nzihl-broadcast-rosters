@@ -31,12 +31,7 @@ jobs:
 
       - name: DEBUG dump raw goalie table HTML (temporary diagnostic)
         run: |
-          python -c "
-from nzihl_rosters.scraper import fetch_team_html
-html = fetch_team_html(675635)
-open('scs_raw_debug.html', 'w').write(html)
-print('wrote', len(html), 'bytes')
-"
+          python -c "from nzihl_rosters.scraper import fetch_team_html; html = fetch_team_html(675635); open('scs_raw_debug.html', 'w').write(html); print('wrote', len(html), 'bytes')"
 
       - name: Upload debug HTML artifact
         uses: actions/upload-artifact@v4
