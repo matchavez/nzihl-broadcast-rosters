@@ -90,7 +90,15 @@ _GOALIE_STATS_RE = re.compile(r"GOALIE STATISTICS[\s\S]*?TEAM TOTALS", re.IGNORE
 _TR_RE = re.compile(r"<tr[^>]*>([\s\S]*?)</tr>", re.IGNORECASE)
 # Match each <td>'s text content.
 _TD_RE = re.compile(r"<td[^>]*>([\s\S]*?)</td>", re.IGNORECASE)
-_TAG_RE = re.compile(r"<[^>]+>")
+# Quote-aware tag stripper. NZIHL/esportsdesk header cells wrap labels in
+# `<span title="...">` tooltips, and some tooltip titles embed a literal
+# `<br />` inside the quoted attribute value (e.g. GAA's "Goals Against
+# Average<br />(based on a 60 minute game)"). A naive `<[^>]+>` stops at the
+# first bare `>` it finds -- including one hiding inside a quoted attribute --
+# which silently garbles the cleaned text and breaks header-label lookups.
+# This pattern treats quoted substrings atomically so embedded `<`/`>` inside
+# attribute values can't truncate the match early.
+_TAG_RE = re.compile(r'<(?:"[^"]*"|\'[^\']*\'|[^>"\'])*>')
 
 
 def _clean(td_html: str) -> str:

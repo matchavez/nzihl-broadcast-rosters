@@ -102,6 +102,31 @@ def test_goalies_parse_correctly_with_extra_by_column():
     assert fanning.sv_pct == ".920"
 
 
+def test_goalies_parse_correctly_with_broken_tooltip_header():
+    """Regression test: the live GOALIE STATISTICS table wraps header labels
+    in `<span title="...">` tooltips, and the GAA tooltip's title attribute
+    embeds a literal `<br />` (e.g. "Goals Against Average<br />(based on a
+    60 minute game)"). A naive tag-stripping regex treats that embedded `<`/`>`
+    as a real tag boundary, garbling the cleaned "GAA" label so the header
+    lookup misses it and silently falls back to the wrong column (GA's index).
+    Confirmed against SkyCity Stampede's real GP=5 goalies Joel Gerard and
+    Aston Brookes, whose GAA (3.19 / 3.39) was being misread as their GA
+    (16 / 17) before this fix."""
+    html = (FIXTURES / "team_stampede_broken_tooltip.html").read_text()
+    goalies = parse_goalies(html, team_id=675635)
+    by_num = {g.jersey: g for g in goalies}
+
+    gerard = by_num["35"]
+    assert gerard.gp == 5 and gerard.mp == 301
+    assert gerard.gaa == "3.19", f"expected gaa=3.19, got {gerard.gaa!r} (GAA tooltip likely misparsed as GA)"
+    assert gerard.sv_pct == ".905"
+
+    brookes = by_num["39"]
+    assert brookes.gp == 5 and brookes.mp == 301
+    assert brookes.gaa == "3.39", f"expected gaa=3.39, got {brookes.gaa!r}"
+    assert brookes.sv_pct == ".909"
+
+
 def test_schedule_parses_upcoming_only():
     html = (FIXTURES / "schedule_min.html").read_text()
     games = parse_schedule(html)
