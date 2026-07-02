@@ -252,15 +252,30 @@ def build_roster_pdf(
         c.line(x + 18*mm, cur_y + 2.5, x + col_w, cur_y + 2.5)
         cur_y -= 4*mm
 
-        cap_x = x + 1.2*mm            # indicator column: C/A letter or IM/AF pill
-        num_right = x + 14.5*mm       # jersey # right edge — widened so a 2-digit
-                                       # jersey doesn't collide with an IM/AF pill
-                                       # sharing this gutter (Mat, 2026-07-02)
-        pos_left  = x + 16.5*mm
-        pos_col_w = 6.5*mm
-        name_left = pos_left + pos_col_w
+        cap_x = x + 1.0*mm            # indicator column: C/A letter or IM/AF pill
+        num_right = x + 14.0*mm       # jersey # right edge — kept wide enough that
+                                       # a 2-digit jersey can't collide with an IM/AF
+                                       # pill sharing this gutter (Mat, 2026-07-02),
+                                       # trimmed 0.5mm (2026-07-02b) once the real
+                                       # worst-case widths (pill + "88") were measured
+                                       # with a small safety margin, not eyeballed.
+        pos_left  = num_right + 1.0*mm   # was +2mm gutter; NZIHL only ever sends
+                                          # single-letter positions (F/D), so a
+                                          # tighter gutter still can't collide.
+        pos_col_w = 5.6*mm            # just enough for the "POS" header label
+                                       # itself (~5.1mm at 7pt Bold) plus a hair
+                                       # of padding; was 6.5mm, sized for 2-letter
+                                       # codes that never actually appear.
+        name_left = pos_left + pos_col_w + 0.8*mm   # small buffer so the "POS"/
+                                       # "NAME" headers don't touch — pos_col_w
+                                       # alone is nearly exactly "POS"'s own
+                                       # width, so zero gap here reproduces the
+                                       # POSNAME collision fixed earlier this
+                                       # session.
         pm_x  = x + col_w - 4*mm      # +/-, right-aligned (right edge of the column)
-        pm_col_w = 9*mm
+        pm_col_w = 7.5*mm             # was 9mm; real values top out at "+28"/"-27"
+                                       # (~6.2mm at 9pt) — 7.5mm leaves ~1.3mm
+                                       # breathing room instead of ~2.8mm of dead air.
         a_x   = pm_x - pm_col_w
         g_x   = a_x  - 7*mm
         name_right = g_x - 5*mm
@@ -353,16 +368,27 @@ def build_roster_pdf(
             is_ro_flag = r.flag == "RO"
             ro_w = (c.stringWidth(r.flag, FONT_BOLD, flag_fs) + 1.6*mm) if is_ro_flag else 0
 
-            first_x = name_left + last_w + 2.2*mm
-            c.setFillColor(first_color); c.setFont(FONT_REGULAR, first_fs)
+            # One space's worth of air between surname and first name, not two
+            # (Mat, 2026-07-02b) — ~1.1mm is a real space glyph at this size,
+            # the old 2.2mm read as a double space.
+            first_x = name_left + last_w + 1.1*mm
             max_first_w = name_right - first_x - ro_w
             first_text = r.first
-            while c.stringWidth(first_text, FONT_REGULAR, first_fs) > max_first_w and len(first_text) > 1:
+            # If the full first name doesn't fit, shrink it a touch before
+            # resorting to truncation-with-a-period (Mat, 2026-07-02b) — a
+            # slightly smaller "Alexander" reads better than "Alexand."
+            first_fs_eff = first_fs
+            min_first_fs = first_fs - (1.5 if not dim else 1.0)
+            while (c.stringWidth(first_text, FONT_REGULAR, first_fs_eff) > max_first_w
+                   and first_fs_eff > min_first_fs):
+                first_fs_eff -= 0.5
+            while c.stringWidth(first_text, FONT_REGULAR, first_fs_eff) > max_first_w and len(first_text) > 1:
                 first_text = first_text[:-1]
             if first_text != r.first:
                 first_text = first_text.rstrip() + "."
+            c.setFillColor(first_color); c.setFont(FONT_REGULAR, first_fs_eff)
             c.drawString(first_x, baseline, first_text)
-            first_text_w = c.stringWidth(first_text, FONT_REGULAR, first_fs)
+            first_text_w = c.stringWidth(first_text, FONT_REGULAR, first_fs_eff)
             tail_x = first_x + first_text_w + 1.4*mm
 
             if is_ro_flag:
