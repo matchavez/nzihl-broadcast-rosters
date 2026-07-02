@@ -6,9 +6,12 @@ Usage:
 Behaviour:
     1. Fetch the NZIHL schedule.
     2. Keep games whose start time falls inside the window (default 4 days).
-    3. Group consecutive games between the same two teams into a series.
-    4. For each series, scrape both team rosters and render a single PDF.
-    5. Filename: <YYYY-MM-DD>_<AWAY>_at_<HOME>.pdf
+    3. Expand to the rest of each game's series (same two teams, <=3 days
+       apart) even if part of it falls outside the window — a weekend series
+       is never split across runs.
+    4. Group consecutive games between the same two teams into a series.
+    5. For each series, scrape both team rosters and render a single PDF.
+    6. Filename: <YYYY-MM-DD>_<AWAY>_at_<HOME>.pdf
 """
 from __future__ import annotations
 
@@ -18,7 +21,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .layout import build_roster_pdf, GameInfo
-from .schedule import upcoming_within, group_into_series, Game, fetch_schedule_html
+from .schedule import upcoming_within, group_into_series, expand_to_series, Game, fetch_schedule_html, parse_schedule
 from . import boxscores
 from .scraper import scrape_team
 
@@ -91,7 +94,13 @@ def main(argv: list[str] | None = None) -> int:
     args.output.mkdir(parents=True, exist_ok=True)
 
     schedule_html = fetch_schedule_html()
-    games = upcoming_within(args.within_days, html=schedule_html)
+    window_games = upcoming_within(args.within_days, html=schedule_html)
+    # A series (same two teams, <=3 days apart) can straddle the window
+    # cutoff — e.g. a Wednesday sweep catches Saturday's game but the window
+    # ends before Sunday's. Pull in the rest of any series we've already
+    # found the start of, even if it falls outside --within-days.
+    all_games = parse_schedule(schedule_html)
+    games = expand_to_series(window_games, all_games)
 
     # NOTE: we deliberately do NOT early-return when `games` is empty. A run
     # with nothing upcoming still needs to write boxscores.json so it can prune
