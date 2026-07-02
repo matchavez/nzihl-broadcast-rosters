@@ -84,6 +84,24 @@ def test_goalies_parse_correctly():
     assert fanning.sv_pct == ".920"
 
 
+def test_goalies_parse_correctly_with_extra_by_column():
+    """Regression test: a stats_1team.cfm revision that inserts a BY (birth
+    year) column between "#" and "GP" in the GOALIE STATISTICS table must
+    not zero out GP (which previously made every goalie fall through to the
+    bench as "hasn't played", even when GP/MP were real)."""
+    html = (FIXTURES / "team_redDevils_v2cols.html").read_text()
+    goalies = parse_goalies(html, team_id=675633)
+    assert len(goalies) == 1
+    fanning = goalies[0]
+    assert fanning.jersey == "52"
+    assert fanning.first == "Niall"
+    assert fanning.last == "FANNING"
+    assert fanning.gp == 1, f"expected gp=1, got {fanning.gp!r} (BY column likely misread as GP)"
+    assert fanning.mp == 61
+    assert fanning.gaa == "3.93"
+    assert fanning.sv_pct == ".920"
+
+
 def test_schedule_parses_upcoming_only():
     html = (FIXTURES / "schedule_min.html").read_text()
     games = parse_schedule(html)

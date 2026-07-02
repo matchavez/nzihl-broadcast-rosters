@@ -186,25 +186,40 @@ def parse_goalies(html: str, team_id: int) -> list[GoalieRow]:
     block = _GOALIE_STATS_RE.search(html)
     if not block:
         return []
+    block_html = block.group(0)
+
+    # Same header-drift issue as parse_skaters: some stats_1team.cfm revisions
+    # insert a BY (birth year) column between "#" and "GP" in the GOALIE
+    # STATISTICS table too. Look up each field by header label instead of a
+    # fixed offset so an extra column can't silently zero out GP (which was
+    # making every goalie fall through to the bench as "hasn't played").
+    header_match = _TR_RE.search(block_html)
+    col = _header_index_map(header_match.group(1)) if header_match else {}
+    idx_num    = col.get("#", 2)
+    idx_gp     = col.get("GP", 3)
+    idx_mp     = col.get("MP", 9)
+    idx_gaa    = col.get("GAA", 11)
+    idx_sv_pct = col.get("SV%", 15)
+
     rows: list[GoalieRow] = []
-    for row_match in _TR_RE.finditer(block.group(0)):
+    for row_match in _TR_RE.finditer(block_html):
         row_html = row_match.group(1)
         full_name = _player_full_name(row_html)
         if not full_name:
             continue
         cells = [_clean(td) for td in _TD_RE.findall(row_html)]
-        # cells: [photo, anchor, #, GP, W, L, T, OTL, SO, MP, GA, GAA, GSAA, SA, SV, SV%, ...]
-        if len(cells) < 16:
+        needed = max(idx_num, idx_gp, idx_mp, idx_gaa, idx_sv_pct) + 1
+        if len(cells) < needed:
             continue
-        jersey = cells[2] or "-"
+        jersey = cells[idx_num] or "-"
         try:
-            gp = int(cells[3]) if cells[3] not in ("", "-") else 0
+            gp = int(cells[idx_gp]) if cells[idx_gp] not in ("", "-") else 0
         except ValueError:
             gp = 0
-        gaa = cells[11] or "—"
-        sv_pct = cells[15] or "—"
+        gaa = cells[idx_gaa] or "—"
+        sv_pct = cells[idx_sv_pct] or "—"
         try:
-            mp = int(cells[9]) if cells[9] not in ("", "-") else 0
+            mp = int(cells[idx_mp]) if cells[idx_mp] not in ("", "-") else 0
         except ValueError:
             mp = 0
         first_raw, last_raw = _split_first_last(full_name)
