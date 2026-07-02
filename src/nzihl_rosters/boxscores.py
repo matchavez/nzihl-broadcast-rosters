@@ -23,11 +23,13 @@ from urllib.parse import urlencode
 
 from .http import fetch
 from .schedule import Game, fetch_schedule_html, upcoming_within
+from .scraper import _TR_RE, _TD_RE, _clean
 
 LEAGUE = "NZIHL"
 CLIENT_ID = 7131
 LEAGUE_ID = 35499
 BOXSCORE_URL = "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm"
+STATS_URL = "https://admin.esportsdesk.com/leagues/stats_1team.cfm"
 
 # Any boxscore link on the schedule (only present for played games).
 _SCHED_GAMEID_RE = re.compile(r"hockey_boxscores\.cfm\?[^\"'<> ]*gameid=(\d+)", re.IGNORECASE)
@@ -190,3 +192,78 @@ def write_manifest(out_path, games: list[Game], schedule_html: str | None = None
     manifest = build_manifest(games, schedule_html, existing_games=existing_games, keep_days=keep_days)
     Path(out_path).write_text(json.dumps(manifest, indent=2) + "\n")
     return manifest
+
+
+# ---------------------------------------------------------------------------
+# "Last game" per-player points, used by the roster PDF's LAST GAME column.
+# ---------------------------------------------------------------------------
+# A team's stats_1team.cfm page links its most recently completed game once,
+# next to the "Last: <result>" summary — upcoming games don't have box scores
+# yet, so any hockey_boxscores.cfm link found there is unambiguously that game.
+_TEAM_LAST_GAME_RE = re.compile(r"hockey_boxscores\.cfm\?[^\"'<> ]*gameid=(\d+)", re.IGNORECASE)
+
+
+def find_last_gameid(team_stats_html: str) -> int | None:
+    """Pull the gameid of a team's most recently completed game from the
+    'Last: <result> [BOX SCORE]' link on their stats_1team.cfm page."""
+    m = _TEAM_LAST_GAME_RE.search(team_stats_html)
+    return int(m.group(1)) if m else None
+
+
+def _skaters_block_for_team(html: str, team_display_name: str) -> str | None:
+    """Isolate the '<TEAM NAME> SKATERS' table block from a box-score page."""
+    heading = re.escape(team_display_name.upper()) + r"(?:\s|<[^>]+>)*SKATERS"
+    m = re.search(heading, html, re.IGNORECASE)
+    if not m:
+        return None
+    rest = html[m.end():]
+    end = re.search(r"[A-Z][A-Z .'\-]+(?:\s|<[^>]+>)*(?:SKATERS|GOALIES)", rest)
+    return rest[:end.start()] if end else rest
+
+
+def parse_boxscore_team_points(html: str, team_display_name: str) -> dict[str, tuple[int, int]]:
+    """Return {jersey: (goals, assists)} for one team's skaters in a single
+    box-score page. A jersey absent from the result means "no recorded row"
+    (didn't dress / row unparseable) — callers should render that as blank,
+    same as a played-but-scoreless game."""
+    block = _skaters_block_for_team(html, team_display_name)
+    if not block:
+        return {}
+    out: dict[str, tuple[int, int]] = {}
+    for row_match in _TR_RE.finditer(block):
+        row_html = row_match.group(1)
+        cells = [_clean(td) for td in _TD_RE.findall(row_html)]
+        # Find the jersey-# cell (first purely-numeric cell, or "-"); G/A follow
+        # two cells later (jersey, name, G, A, ...) regardless of whether a
+        # leading blank photo column is present.
+        jersey_idx = next((i for i, cell in enumerate(cells) if cell.isdigit() or cell == "-"), None)
+        if jersey_idx is None or len(cells) < jersey_idx + 4:
+            continue
+        jersey = cells[jersey_idx]
+        if jersey == "-":
+            continue
+        try:
+            g = int(cells[jersey_idx + 2]) if cells[jersey_idx + 2] not in ("", "-") else 0
+            a = int(cells[jersey_idx + 3]) if cells[jersey_idx + 3] not in ("", "-") else 0
+        except ValueError:
+            continue
+        out[jersey] = (g, a)
+    return out
+
+
+def fetch_last_game_points(team_id: int, team_display_name: str, *,
+                            client_id: int = CLIENT_ID, league_id: int = LEAGUE_ID) -> dict[str, tuple[int, int]]:
+    """{jersey: (g, a)} for a team's most recently completed game. Returns {}
+    on a season opener (no prior game) or if anything can't be resolved —
+    LAST GAME is a nice-to-have, so callers degrade to all-blank rather than
+    fail the whole roster build."""
+    params = {"clientid": client_id, "leagueid": league_id, "teamid": team_id}
+    stats_url = f"{STATS_URL}?{urlencode(params)}"
+    try:
+        gameid = find_last_gameid(fetch(stats_url))
+        if not gameid:
+            return {}
+        box_html = fetch(_shell_url(gameid, client_id, league_id))
+        return parse_boxscore_team_points(box_html, team_display_name)
+    except Exception:  # noqa: BLE001 — best-effort
+        return {}

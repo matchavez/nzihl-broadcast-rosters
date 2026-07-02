@@ -38,6 +38,9 @@ class SkaterRow:
     g: int
     a: int
     flag: str  # "" / "C" / "A" / "IM" / "AF" / "RO"
+    last_g: int = 0        # goals in the player's most recent played game
+    last_a: int = 0        # assists in the player's most recent played game
+    plus_minus: str = ""   # "" if the page revision doesn't carry a +/- column
 
 
 @dataclass
@@ -122,36 +125,59 @@ def _player_full_name(row_html: str) -> str | None:
     return m.group(2)
 
 
+_TH_RE = re.compile(r"<th[^>]*>([\s\S]*?)</th>", re.IGNORECASE)
+
+
+def _header_index_map(header_row_html: str) -> dict[str, int]:
+    """{column label (cleaned, upper) -> cell index} from a <tr> of <th> cells."""
+    return {_clean(th).upper(): i for i, th in enumerate(_TH_RE.findall(header_row_html))}
+
+
 def parse_skaters(html: str, team_id: int) -> list[SkaterRow]:
     block = _PLAYER_STATS_RE.search(html)
     if not block:
         return []
+    block_html = block.group(0)
+
+    # NZIHL has shipped more than one stats_1team.cfm column layout (some
+    # revisions insert a BY birth-year column, or add PTS/+/- and other advanced
+    # columns). Read the header row and locate each field by its label instead
+    # of a fixed offset, so an extra/missing column upstream can't silently
+    # misalign GP/G/A (or make +/- unreadable/absent).
+    header_match = _TR_RE.search(block_html)
+    col = _header_index_map(header_match.group(1)) if header_match else {}
+    idx_num = col.get("#", 2)
+    idx_pos = col.get("POSITION", 3)
+    idx_gp  = col.get("GP", 4)
+    idx_g   = col.get("G", 5)
+    idx_a   = col.get("A", 6)
+    idx_pm  = col.get("+/-")  # None on layouts that don't carry it
+
     rows: list[SkaterRow] = []
-    for row_match in _TR_RE.finditer(block.group(0)):
+    for row_match in _TR_RE.finditer(block_html):
         row_html = row_match.group(1)
         full_name = _player_full_name(row_html)
         if not full_name:
             continue
         cells = [_clean(td) for td in _TD_RE.findall(row_html)]
-        # cells[0] is empty (player photo column), cells[1] is the player anchor.
-        # cells[2] = jersey #, cells[3] = position, cells[4] = GP, cells[5] = G, cells[6] = A, ...
-        if len(cells) < 7:
+        if len(cells) < max(idx_num, idx_pos, idx_gp, idx_g, idx_a) + 1:
             continue
-        jersey = cells[2] or "-"
-        position = cells[3] or ""
+        jersey = cells[idx_num] or "-"
+        position = cells[idx_pos] or ""
         try:
-            gp = int(cells[4]) if cells[4] not in ("", "-") else 0
-            g = int(cells[5]) if cells[5] not in ("", "-") else 0
-            a = int(cells[6]) if cells[6] not in ("", "-") else 0
+            gp = int(cells[idx_gp]) if cells[idx_gp] not in ("", "-") else 0
+            g = int(cells[idx_g]) if cells[idx_g] not in ("", "-") else 0
+            a = int(cells[idx_a]) if cells[idx_a] not in ("", "-") else 0
         except ValueError:
             continue
+        plus_minus = cells[idx_pm] if (idx_pm is not None and idx_pm < len(cells)) else ""
         first_raw, last_raw = _split_first_last(full_name)
         first, last = normalize_name(first_raw, last_raw, team_id, jersey)
         flag = _row_flag(row_html)
         rows.append(SkaterRow(
             jersey=jersey, last=last.upper() if last else "",
             first=first, position=position,
-            gp=gp, g=g, a=a, flag=flag,
+            gp=gp, g=g, a=a, flag=flag, plus_minus=plus_minus,
         ))
     return rows
 

@@ -41,6 +41,36 @@ def test_skaters_parse_correctly():
     assert barton.gp == 0
 
 
+def test_skaters_parse_correctly_with_extra_columns():
+    """Regression test: a stats_1team.cfm revision that inserts a BY (birth
+    year) column — and appends P/G, +/-, PPG, etc. — must not shift GP/G/A
+    off by one. Columns are located by header label, not a fixed offset."""
+    html = (FIXTURES / "team_redDevils_v2cols.html").read_text()
+    skaters = parse_skaters(html, team_id=675633)
+    by_num = {s.jersey: s for s in skaters}
+
+    g = by_num["88"]
+    assert g.gp == 12 and g.g == 20 and g.a == 11
+    assert g.position == "F"
+    assert g.plus_minus == "13"
+
+    brown = by_num["8"]
+    assert brown.gp == 12 and brown.g == 1 and brown.a == 4
+    assert brown.plus_minus == "-7"
+    assert brown.flag == "C"
+
+    henare = by_num["7"]
+    assert henare.plus_minus == "E"
+
+
+def test_skaters_plus_minus_blank_when_column_absent():
+    """The original (no BY, no +/-) layout must still parse cleanly, with
+    plus_minus defaulting to blank rather than erroring or misreading PTS."""
+    html = (FIXTURES / "team_redDevils_min.html").read_text()
+    skaters = parse_skaters(html, team_id=675633)
+    assert all(s.plus_minus == "" for s in skaters)
+
+
 def test_goalies_parse_correctly():
     html = (FIXTURES / "team_redDevils_min.html").read_text()
     goalies = parse_goalies(html, team_id=675633)

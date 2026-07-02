@@ -46,10 +46,24 @@ def _filename(series: list[Game]) -> str:
     return f"{first.start_local.strftime('%Y-%m-%d')}_{first.away.short_code}_at_{first.home.short_code}.pdf"
 
 
+def _apply_last_game(skaters: list, team_id: int, team_display_name: str) -> None:
+    """Fill in SkaterRow.last_g / last_a from the team's most recent box score,
+    matched by jersey #. Best-effort: a failed/empty lookup just leaves every
+    row at (0, 0), which renders as a blank LAST GAME cell."""
+    points = boxscores.fetch_last_game_points(team_id, team_display_name)
+    for r in skaters:
+        g, a = points.get(r.jersey, (0, 0))
+        r.last_g, r.last_a = g, a
+
+
 def build_series_pdf(series: list[Game], output_dir: Path) -> Path:
     first = series[0]
     away_skaters, away_goalies = scrape_team(first.away.team_id)
     home_skaters, home_goalies = scrape_team(first.home.team_id)
+    # NOTE: the LAST GAME column was removed from the roster PDF (2026-07-02),
+    # so we no longer spend an extra fetch per team on _apply_last_game here.
+    # The function + its box-score parser/tests are left in place in case the
+    # column comes back.
     info = GameInfo(
         round_label=_round_label(first.start_local),
         date_label=_date_label(series),
