@@ -37,3 +37,41 @@ def test_public_boxscore_url_shape():
     url = boxscores.public_boxscore_url(2519937)
     assert "hockey_boxscores.cfm" in url and "gameid=2519937" in url
     assert "clientid=7131" in url and "leagueid=35499" in url
+
+
+def test_prune_and_merge_drops_entries_older_than_keep_days():
+    today = date(2026, 7, 2)
+    existing = [
+        {"date": "2026-06-24", "datetime": "2026-06-24T16:45:00+12:00",
+         "away": "SkyCity Stampede", "home": "Botany Swarm"},
+    ]
+    merged = boxscores.prune_and_merge(existing, [], keep_days=3, today=today)
+    assert merged == []  # well past the 3-day keep window
+
+
+def test_prune_and_merge_keeps_recently_played_entries():
+    today = date(2026, 7, 2)
+    existing = [
+        {"date": "2026-06-30", "datetime": "2026-06-30T16:45:00+12:00",
+         "away": "SkyCity Stampede", "home": "Botany Swarm"},
+    ]
+    merged = boxscores.prune_and_merge(existing, [], keep_days=3, today=today)
+    assert len(merged) == 1  # only 2 days old, still within the keep window
+
+
+def test_prune_and_merge_new_games_replace_old_duplicate_and_sort():
+    today = date(2026, 7, 2)
+    existing = [
+        {"date": "2026-07-04", "datetime": "2026-07-04T16:45:00+12:00",
+         "away": "SkyCity Stampede", "home": "Botany Swarm", "gameid": None},
+    ]
+    new = [
+        {"date": "2026-07-04", "datetime": "2026-07-04T16:45:00+12:00",
+         "away": "SkyCity Stampede", "home": "Botany Swarm", "gameid": 2519941},
+        {"date": "2026-07-05", "datetime": "2026-07-05T16:45:00+12:00",
+         "away": "SkyCity Stampede", "home": "Botany Swarm", "gameid": 2519942},
+    ]
+    merged = boxscores.prune_and_merge(existing, new, keep_days=3, today=today)
+    assert len(merged) == 2
+    assert merged[0]["gameid"] == 2519941  # replaced, not duplicated
+    assert merged[1]["date"] == "2026-07-05"
