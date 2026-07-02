@@ -173,6 +173,12 @@ def build_roster_pdf(
     def draw_team(x: float, team: Team, skaters: list[SkaterRow], played_goalies: list[GoalieRow]):
         y_top = content_top
         primary = HexColor(team.primary_hex)
+        # Text drawn directly on the white page (jersey #, captain letter) uses
+        # `text_primary` rather than `primary`: most teams' primary colour reads
+        # fine as text, but Stampede's yellow is illegible on white, so their
+        # Team entry overrides text_hex to their navy (Mat, 2026-07-02). The
+        # header band itself still fills with the true primary colour.
+        text_primary = HexColor(team.text_hex or team.primary_hex)
         accent  = HexColor(team.accent_hex)
         title_color = HexColor(team.title_hex)
 
@@ -205,7 +211,7 @@ def build_roster_pdf(
             c.rect(gx, cur_y - goalie_card_h, gw, goalie_card_h, fill=1, stroke=1)
             # jersey
             num_fs = 17
-            c.setFillColor(primary); c.setFont(FONT_BOLD, num_fs)
+            c.setFillColor(text_primary); c.setFont(FONT_BOLD, num_fs)
             c.drawString(gx + 3*mm, cur_y - goalie_card_h + 11*mm, g.jersey)
             num_w = c.stringWidth(g.jersey, FONT_BOLD, num_fs)
             name_x = gx + 3*mm + num_w + 2*mm
@@ -288,7 +294,7 @@ def build_roster_pdf(
             body_fs  = 10   if not dim else 8
             flag_fs  = 7    if not dim else 6
 
-            num_color  = primary if not (dim or is_no_num) else (DIM if dim else MUTED)
+            num_color  = text_primary if not (dim or is_no_num) else (DIM if dim else MUTED)
             body_color = INK if not dim else DIM
             first_color = SUBINK if not dim else DIM
 
@@ -307,7 +313,7 @@ def build_roster_pdf(
             # different spots on the row.
             if r.flag in ("C", "A"):
                 cap_fs = 7.5 if not dim else 6
-                cap_color = MUTED if dim else primary
+                cap_color = MUTED if dim else text_primary
                 c.setFillColor(cap_color); c.setFont(FONT_BOLD, cap_fs)
                 c.drawString(cap_x, baseline, r.flag)
             elif r.flag in ("IM", "AF"):

@@ -22,6 +22,11 @@ class Team:
     home_venue: str              # short venue label for the footer
     short_code: str              # 3-letter code (CRD/BSW/...)
     logo_file: str = ""          # filename in assets/logos/ (defaults to short_code.png)
+    text_hex: str = ""           # team colour used for TEXT on a white background
+                                  # (jersey #, captain letter). Falls back to
+                                  # primary_hex when unset. Override this when
+                                  # primary_hex is too light to read on white
+                                  # (e.g. Stampede's yellow -> their navy).
 
     @property
     def logo_path(self) -> Path | None:
@@ -80,6 +85,9 @@ TEAMS: dict[str, Team] = {
         primary_hex="#FAC805",
         accent_hex="#1D3056",
         title_hex="#1D3056",      # navy on yellow — primary is too light for white
+        text_hex="#1D3056",       # jersey #/captain letter on white also use navy,
+                                    # not the yellow primary (Mat, 2026-07-02: yellow
+                                    # is illegible on white)
         home_venue="Queenstown Ice Arena",
         short_code="SCS",
     ),
