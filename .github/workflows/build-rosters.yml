@@ -29,6 +29,21 @@ jobs:
       - name: Run unit tests
         run: PYTHONPATH=src python -m pytest tests/ -v
 
+      - name: DEBUG dump raw goalie table HTML (temporary diagnostic)
+        run: |
+          python -c "
+from nzihl_rosters.scraper import fetch_team_html
+html = fetch_team_html(675635)
+open('scs_raw_debug.html', 'w').write(html)
+print('wrote', len(html), 'bytes')
+"
+
+      - name: Upload debug HTML artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scs-raw-debug
+          path: scs_raw_debug.html
+
       - name: Generate rosters (next 4 days)
         id: build
         run: |
