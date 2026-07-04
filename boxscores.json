@@ -23,7 +23,34 @@
       "home_code": "BSW",
       "venue": "Paradice Botany",
       "gameid": 2519942,
-      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519942"
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519942",
+      "in_core_window": true
+    },
+    {
+      "date": "2026-07-11",
+      "time": "4:45 PM",
+      "datetime": "2026-07-11T16:45:00+12:00",
+      "away": "Dunedin Thunder",
+      "away_code": "DUN",
+      "home": "Pure NZ Admirals",
+      "home_code": "WAA",
+      "venue": "Paradice Avondale",
+      "gameid": 2519943,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519943",
+      "in_core_window": false
+    },
+    {
+      "date": "2026-07-12",
+      "time": "4:45 PM",
+      "datetime": "2026-07-12T16:45:00+12:00",
+      "away": "Dunedin Thunder",
+      "away_code": "DUN",
+      "home": "Pure NZ Admirals",
+      "home_code": "WAA",
+      "venue": "Paradice Avondale",
+      "gameid": 2519944,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519944",
+      "in_core_window": false
     }
   ]
 }
