@@ -51,6 +51,32 @@
       "gameid": 2519944,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519944",
       "in_core_window": false
+    },
+    {
+      "date": "2026-07-17",
+      "time": "7:00 PM",
+      "datetime": "2026-07-17T19:00:00+12:00",
+      "away": "Botany Swarm",
+      "away_code": "BSW",
+      "home": "Dunedin Thunder",
+      "home_code": "DUN",
+      "venue": "Dunedin Ice Stadium",
+      "gameid": 2519945,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519945",
+      "in_core_window": false
+    },
+    {
+      "date": "2026-07-18",
+      "time": "6:00 PM",
+      "datetime": "2026-07-18T18:00:00+12:00",
+      "away": "Botany Swarm",
+      "away_code": "BSW",
+      "home": "Dunedin Thunder",
+      "home_code": "DUN",
+      "venue": "Dunedin Ice Stadium",
+      "gameid": 2519946,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519946",
+      "in_core_window": false
     }
   ]
 }
