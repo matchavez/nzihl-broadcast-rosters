@@ -37,7 +37,7 @@
       "venue": "Paradice Avondale",
       "gameid": 2519943,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519943",
-      "in_core_window": false
+      "in_core_window": true
     },
     {
       "date": "2026-07-12",
@@ -50,7 +50,7 @@
       "venue": "Paradice Avondale",
       "gameid": 2519944,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519944",
-      "in_core_window": false
+      "in_core_window": true
     },
     {
       "date": "2026-07-17",
@@ -67,6 +67,19 @@
     },
     {
       "date": "2026-07-18",
+      "time": "5:10 PM",
+      "datetime": "2026-07-18T17:10:00+12:00",
+      "away": "SkyCity Stampede",
+      "away_code": "SCS",
+      "home": "Canterbury Red Devils",
+      "home_code": "CRD",
+      "venue": "Alpine Ice Centre",
+      "gameid": 2519947,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519947",
+      "in_core_window": false
+    },
+    {
+      "date": "2026-07-18",
       "time": "6:00 PM",
       "datetime": "2026-07-18T18:00:00+12:00",
       "away": "Botany Swarm",
@@ -76,6 +89,19 @@
       "venue": "Dunedin Ice Stadium",
       "gameid": 2519946,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519946",
+      "in_core_window": false
+    },
+    {
+      "date": "2026-07-19",
+      "time": "5:10 PM",
+      "datetime": "2026-07-19T17:10:00+12:00",
+      "away": "SkyCity Stampede",
+      "away_code": "SCS",
+      "home": "Canterbury Red Devils",
+      "home_code": "CRD",
+      "venue": "Alpine Ice Centre",
+      "gameid": 2519948,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519948",
       "in_core_window": false
     }
   ]
