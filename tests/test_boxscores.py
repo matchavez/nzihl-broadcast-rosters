@@ -114,3 +114,60 @@ def test_resolve_marks_in_core_window_false_when_outside_core_keys():
     by_date = {o["date"]: o["in_core_window"] for o in out}
     assert by_date["2026-07-06"] is True
     assert by_date["2026-07-14"] is False
+
+
+def test_last_final_gameid_lookback_fast_path_no_extra_calls():
+    """If schedule_html already has a Final, the lookback must not make any
+    extra network calls -- the common case stays exactly as cheap as before."""
+    calls = []
+    gid = boxscores._last_final_gameid_lookback(
+        SCHEDULE, client_id=7131, league_id=35499,
+        fetch_month=lambda m, y: calls.append((m, y)) or "unused")
+    assert gid == 2519936
+    assert calls == []
+
+
+def test_last_final_gameid_lookback_falls_back_one_month():
+    """Same underlying site behaviour that bit NZWIHL on 2026-07-08: schedules.cfm's
+    printPage view is scoped to the site's CURRENT server month. Fixed here
+    pre-emptively so NZIHL doesn't hit the identical bug on its next month-crossing
+    bye (see nzwihl-broadcast-rosters for the live incident)."""
+    no_final_this_month = "SAT 11 JUL tickets only, no boxscore link yet"
+    calls = []
+    def fake_fetch_month(m, y):
+        calls.append((m, y))
+        return SCHEDULE if (m, y) == (6, 2026) else "nothing here either"
+
+    gid = boxscores._last_final_gameid_lookback(
+        no_final_this_month, client_id=7131, league_id=35499,
+        today=date(2026, 7, 8), fetch_month=fake_fetch_month)
+    assert gid == 2519936
+    assert calls == [(6, 2026)]
+
+
+def test_last_final_gameid_lookback_gives_up_after_max_months_back():
+    """Bounded: must not loop forever if no recent month has a Final game."""
+    calls = []
+    def fake_fetch_month(m, y):
+        calls.append((m, y))
+        return "never any finals here"
+
+    gid = boxscores._last_final_gameid_lookback(
+        "also nothing", client_id=7131, league_id=35499,
+        today=date(2026, 7, 8), max_months_back=3, fetch_month=fake_fetch_month)
+    assert gid is None
+    assert calls == [(6, 2026), (5, 2026), (4, 2026)]
+
+
+def test_last_final_gameid_lookback_handles_year_rollover():
+    """Walking back from January must cross into December of the prior year."""
+    calls = []
+    def fake_fetch_month(m, y):
+        calls.append((m, y))
+        return SCHEDULE if (m, y) == (12, 2025) else "nothing"
+
+    gid = boxscores._last_final_gameid_lookback(
+        "nothing this month", client_id=7131, league_id=35499,
+        today=date(2026, 1, 15), max_months_back=3, fetch_month=fake_fetch_month)
+    assert gid == 2519936
+    assert calls == [(12, 2025)]

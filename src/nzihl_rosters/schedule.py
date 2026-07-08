@@ -65,6 +65,21 @@ def fetch_schedule_html(client_id: int = 7131, league_id: int = 35499) -> str:
     return fetch(url)
 
 
+def fetch_schedule_html_for_month(client_id: int = 7131, league_id: int = 35499, *,
+                                   month_id: int, year_id: int) -> str:
+    """Explicit calendar month/year variant of the schedule table (printPage=1,
+    schedType=main -- confirmed 2026-07-08 to accept monthID/yearID and return that
+    month's Final results incl. boxscore links). fetch_schedule_html() above returns
+    the full homepage-style page, which embeds a marketing widget covering the whole
+    season PLUS a month-scoped widget -- this fetch is the reliable, explicitly-scoped
+    fallback used when neither happens to contain a Final game in the needed month
+    (see boxscores._last_final_gameid_lookback)."""
+    params = {"clientid": client_id, "leagueid": league_id, "schedType": "main",
+              "printPage": 1, "monthID": month_id, "yearID": year_id}
+    url = f"{SCHEDULE_URL}?{urlencode(params)}"
+    return fetch(url)
+
+
 # ---------- regexes -------------------------------------------------
 
 # `<h5> ... Fri 22 May, 2026 ... </h5>` — capture day, month name, year.
