@@ -2,18 +2,6 @@
   "league": "NZIHL",
   "games": [
     {
-      "date": "2026-07-04",
-      "time": "4:45 PM",
-      "datetime": "2026-07-04T16:45:00+12:00",
-      "away": "SkyCity Stampede",
-      "away_code": "SCS",
-      "home": "Botany Swarm",
-      "home_code": "BSW",
-      "venue": "Paradice Botany",
-      "gameid": 2519941,
-      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519941"
-    },
-    {
       "date": "2026-07-05",
       "time": "4:45 PM",
       "datetime": "2026-07-05T16:45:00+12:00",
