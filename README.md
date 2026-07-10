@@ -1,12 +1,12 @@
 # nzihl-broadcast-rosters
 
 Auto-generated single-page roster PDFs for the NZIHL broadcast booth. Pulls
-live rosters and the upcoming schedule from `nzihl.com`, applies a few
-name corrections the league hasn't fixed yet,
+live rosters and the upcoming schedule from esportsdesk (`admin.esportsdesk.com`,
+the no-cache origin), applies a few name corrections the league hasn't fixed yet,
 and renders one PDF per upcoming series.
 
 Runs daily on GitHub Actions; PDFs land as a release artifact attached
-to the run.
+to the run, and a `boxscores.json` gameid manifest is committed back to the repo.
 
 ## What it produces
 
@@ -20,6 +20,9 @@ For each upcoming series within the next 4 days, one A4 portrait PDF:
 - Players who haven't dressed yet — including goalies — fall into a dimmed
   "NOT YET PLAYED THIS SEASON" group at the bottom of each column.
 
+`boxscores.json` separately lists games up to **11 days** out (no PDF yet),
+so the `hockeyrosters` page can show them further ahead as "coming soon."
+
 ## Project layout
 
 ```
@@ -28,9 +31,11 @@ src/nzihl_rosters/
   overrides.py     # explicit name overrides + title-casing
   scraper.py       # parses stats_1team.cfm into Skater/GoalieRow lists
   schedule.py      # parses schedules.cfm into a list of upcoming Games
+  boxscores.py     # gameid resolution + boxscores.json manifest writer
   layout.py        # the single-page PDF builder
   cli.py           # CLI: schedule → filter window → group → render
-.github/workflows/build-rosters.yml   # daily cron, publishes release
+.github/workflows/build-rosters.yml   # daily cron (17:30 UTC), publishes release
+boxscores.json     # committed gameid manifest (self-prunes entries >3 days old)
 tests/             # unit tests against hand-crafted HTML fixtures
 ```
 
@@ -43,35 +48,19 @@ pip install -e .
 # What would run today?
 python -m nzihl_rosters --within-days 4 --dry-run
 
-# Actually render the PDFs into ./output/
-python -m nzihl_rosters --within-days 4 --output ./output
+# Actually render the PDFs into ./output/, plus the boxscores.json manifest
+# (11-day lookahead by default, independent of --within-days)
+python -m nzihl_rosters --within-days 4 --manifest-within-days 11 --output ./output
 ```
 
-## Push to GitHub
+## Automation
 
-The code is ready; create the repo and push:
+The workflow runs daily at **17:30 UTC** (roughly 05:30 NZST / 06:30 NZDT —
+timed to land before 7am NZ time despite GitHub Actions' scheduling delay).
+Any games within the next 4 days get their roster PDFs attached to a release
+named `rosters-<run number>`.
 
-```bash
-cd /path/to/nzihl-broadcast-rosters
-
-# 1. Create the GitHub repo (one of)
-gh repo create matchavez/nzihl-broadcast-rosters --public --source=. --remote=origin --push
-# …or via the web UI, then:
-# git init && git remote add origin git@github.com:matchavez/nzihl-broadcast-rosters.git
-
-# 2. Commit and push
-git add .
-git commit -m "Initial scaffold: NZIHL roster auto-builder"
-git branch -M main
-git push -u origin main
-```
-
-That's it — once the default branch lands, the workflow's daily cron
-will fire at 19:00 UTC (07:00 NZ) and any games within the next 4 days
-will have their roster PDFs attached to a release named
-`rosters-<run number>`.
-
-You can also trigger it manually any time:
+Trigger a run manually any time:
 
 ```bash
 gh workflow run "Build rosters"
@@ -95,8 +84,7 @@ for names that need a *non-trivial* correction.
 ## Adding / updating a team
 
 Edit `src/nzihl_rosters/teams.py`. The colours come from the
-**2026 NZIHL/NZWIHL Style Guide** in the assets repo. NZWIHL teams will
-need a parallel registry once we extend to the women's side.
+**2026 NZIHL/NZWIHL Style Guide** in the `nzihl-broadcast-assets` repo.
 
 ## Testing
 
@@ -113,8 +101,11 @@ upstream HTML drift will surface as a workflow failure.
 
 - **Round labels** are derived from the calendar week from 8 May 2026.
   If the season schedule changes, refresh `_round_label` in `cli.py`.
-- **NZWIHL not yet supported.** The team registry currently lists only
-  the five NZIHL men's franchises.
+- **NZWIHL is a separate repo, not an extension of this one.** The women's
+  league is built by [matchavez/nzwihl-broadcast-rosters](https://github.com/matchavez/nzwihl-broadcast-rosters) —
+  its own package, own team registry, own workflow. This repo's registry only
+  ever covers the 5 NZIHL men's franchises currently wired up; that's expected,
+  not a to-do.
 - **Player flags `A` (alternate captain) and `C` (captain)** are rendered
   in the team's primary colour like other text flags. NZIHL only tags
   one alternate per game; if multiple should be shown, edit the source.
