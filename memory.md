@@ -1,6 +1,6 @@
 # memory.md — matchavez/nzihl-broadcast-rosters
 
-Self-context for Claude. README.md is solid and human-facing (install/run instructions, schema). This file adds the automation state, gotchas, and cross-repo wiring README doesn't cover. Last refreshed: 2026-07-11.
+Self-context for Claude. README.md is solid and human-facing (install/run instructions, schema) — was corrected 2026-07-11 (stale data-source claim, obsolete initial-scaffold section, stale cron reference, NZWIHL note repointed at the sibling repo). This file adds the automation state, gotchas, and cross-repo wiring README doesn't cover. Last refreshed: 2026-07-11.
 
 ## What this repo is
 Daily GitHub Action that renders one A4 roster PDF per upcoming NZIHL series (goalies top, skaters by jersey #, top-3 scorers highlighted, "not yet played" group), pulling live data from esportsdesk, and publishes them as a GitHub Release. Sibling repo **nzwihl-broadcast-rosters** is the same pipeline for the women's league.
@@ -9,7 +9,7 @@ Daily GitHub Action that renders one A4 roster PDF per upcoming NZIHL series (go
 `src/nzihl_rosters/{teams,overrides,scraper,schedule,layout,cli}.py`, `tests/` (fixture-driven unit tests), `.github/workflows/build-rosters.yml`, `boxscores.json` (committed gameid manifest, self-pruning >3 days past date).
 
 ## Automation
-- Cron `30 17 * * *` UTC = 07:30ish NZT depending on DST — **the workflow file's own inline comment still says "19:00 UTC = 07:00 NZST/08:00 NZDT", which is stale** (cron was moved 19:00→17:30 UTC on 2026-07-04 to land before 7am NZT despite GitHub Actions scheduling delay). Trust the actual `cron:` value, not the comment, if they ever disagree again.
+- Cron `30 17 * * *` UTC = 07:30ish NZT depending on DST. The workflow comment was fixed 2026-07-11 (used to say "19:00 UTC", now correctly says 17:30 UTC).
 - Generates PDFs for games within **4 days** (`--within-days 4`) but the committed `boxscores.json` manifest looks **11 days** ahead (`--manifest-within-days 11`) so the hockeyrosters page can show "coming soon" further out than the PDF actually exists. These two windows are intentionally decoupled — don't "fix" one to match the other.
 - Runs unit tests before generating; release is named `rosters-<run number>`.
 
