@@ -139,7 +139,7 @@ def test_schedule_parses_upcoming_only():
 
     # First upcoming is Admirals @ Thunder on Fri 22 May 19:00
     first = upcoming[0]
-    assert first.away.short_code == "WAA"
+    assert first.away.short_code == "ADM"
     assert first.home.short_code == "DUN"
     assert first.start_local.strftime("%Y-%m-%d %H:%M") == "2026-05-22 19:00"
 
@@ -147,7 +147,7 @@ def test_schedule_parses_upcoming_only():
     assert upcoming[1].away.short_code == "BSW"
     assert upcoming[1].home.short_code == "CRD"
     assert upcoming[1].start_local.strftime("%H:%M") == "17:10"
-    assert upcoming[2].away.short_code == "WAA"
+    assert upcoming[2].away.short_code == "ADM"
     assert upcoming[2].home.short_code == "DUN"
     assert upcoming[2].start_local.strftime("%H:%M") == "18:30"
 

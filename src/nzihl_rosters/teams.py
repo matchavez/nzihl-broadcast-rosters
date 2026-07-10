@@ -66,7 +66,7 @@ TEAMS: dict[str, Team] = {
         accent_hex="#F7BE11",
         title_hex="#F7BE11",      # gold on navy
         home_venue="Paradice Avondale",
-        short_code="WAA",
+        short_code="ADM",
     ),
     "THUNDER": Team(
         team_id=675634,
