@@ -102,6 +102,68 @@ def test_goalies_parse_correctly_with_extra_by_column():
     assert fanning.sv_pct == ".920"
 
 
+def test_skaters_pim_parsed_when_column_present():
+    """stats.json needs PIM (added 2026-07-12 for the Player Lower Thirds
+    feature) — regression-check it against the same v2cols fixture used for
+    the +/- column, cross-verified against the fixture's raw PIM cell."""
+    html = (FIXTURES / "team_redDevils_v2cols.html").read_text()
+    skaters = parse_skaters(html, team_id=675633)
+    by_num = {s.jersey: s for s in skaters}
+    assert by_num["88"].pim == 2
+    assert by_num["8"].pim == 31
+    assert by_num["7"].pim == 0
+
+
+def test_skaters_pim_zero_when_column_absent():
+    html = (FIXTURES / "team_redDevils_min.html").read_text()
+    skaters = parse_skaters(html, team_id=675633)
+    assert all(s.pim == 0 for s in skaters)
+
+
+def test_goalies_ga_so_w_l_parsed_when_columns_present():
+    """Same stats.json need as PIM above, for goalie GA/SO/W/L."""
+    html = (FIXTURES / "team_redDevils_v2cols.html").read_text()
+    goalies = parse_goalies(html, team_id=675633)
+    fanning = goalies[0]
+    assert fanning.ga == 4
+    assert fanning.so == 0
+    assert fanning.w == 0
+    assert fanning.l == 0
+
+
+def test_goalies_ga_so_w_l_parsed_on_base_layout_too():
+    """The 'min' fixture (no BY column) still carries GA/SO/W/L natively —
+    unlike PIM (goalie stats never carry that column), these are core
+    goalie columns present on every observed layout. Cross-checked against
+    the fixture's raw cells: Fanning is 1-0-0, 0 SO, GA=4."""
+    html = (FIXTURES / "team_redDevils_min.html").read_text()
+    goalies = parse_goalies(html, team_id=675633)
+    fanning = goalies[0]
+    assert fanning.ga == 4
+    assert fanning.so == 0
+    assert fanning.w == 0
+    assert fanning.l == 0
+
+
+def test_goalies_ga_so_w_l_zero_when_columns_genuinely_absent():
+    """A hypothetical minimal layout with none of W/L/SO/GA should degrade
+    to zeros rather than erroring or misreading an unrelated column."""
+    from nzihl_rosters.scraper import parse_goalies as _pg
+    minimal_html = (
+        "<h5><strong>GOALIE STATISTICS</strong></h5><table>"
+        "<tr><th></th><th>Player</th><th>#</th><th>GP</th><th>MP</th><th>GAA</th><th>SV%</th></tr>"
+        '<tr><td></td><td><a href="/leagues/rosters_profile.cfm?playerID=1" title="Test Keeper">T Keeper</a> '
+        '<a href="/leagues/rosters_profile.cfm?playerID=1" title="Test Keeper">Test Keeper</a></td>'
+        "<td>30</td><td>3</td><td>180</td><td>2.50</td><td>.910</td></tr>"
+        "<tr><td>TEAM TOTALS</td></tr></table>"
+    )
+    goalies = _pg(minimal_html, team_id=675633)
+    assert len(goalies) == 1
+    g = goalies[0]
+    assert g.ga == 0 and g.so == 0 and g.w == 0 and g.l == 0
+    assert g.gp == 3 and g.mp == 180
+
+
 def test_goalies_parse_correctly_with_broken_tooltip_header():
     """Regression test: the live GOALIE STATISTICS table wraps header labels
     in `<span title="...">` tooltips, and the GAA tooltip's title attribute
