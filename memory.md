@@ -42,6 +42,24 @@ backward-compatible addition, not a breaking one.
 Ported in lockstep to the NZWIHL sibling (commit 0af589a there) — same
 `personnel.cfm` endpoint works with NZWIHL's `clientid=7132&leagueid=35501`.
 
+## stats.json export (2026-07-12)
+Added `src/nzihl_rosters/stats_export.py`, wired into `cli.py` as a best-effort
+step (try/except, can't fail an otherwise-good roster run) right after the
+boxscores manifest write. Emits `stats.json` at repo root:
+`{"generated_at": "<date>", "league": "nzihl", "teams": {"<TLA>": {"skaters":[...],"goalies":[...],"coaches":[...]}}}`,
+one entry per team scraped from `stats_1team.cfm` (skaters now also carry
+`pim`; goalies carry `ga`/`so`/`w`/`l` -- all via header-label column lookup,
+default 0 if the column's absent, same robustness pattern as the rest of
+`scraper.py`). `build-rosters.yml` commits it alongside the boxscores
+manifest, diffing on content (`jq -S 'del(.generated_at)'`) so an unchanged
+day produces no commit.
+
+**Why it exists:** feeds the new **Player Lower Thirds** control page
+(`matchavez/hockey`'s `hockey/lowerthirds/` + `activity-banner/`) season
+stat lines -- see Claude's `nzihl-player-lower-thirds` memory. This repo
+and its NZWIHL sibling are the sole source of season totals for that
+project; `nzihl-season-data` covers *completed game* history instead.
+
 ## Known gotchas fixed here (useful if similar bugs resurface)
 - **Month-boundary bug (2026-07-08):** gameid resolution for `last_final_gameid` silently returned null for *all* games whenever the league's last Final fell in the prior calendar month. Ported the fix pre-emptively from nzwihl-broadcast-rosters after it hit NZWIHL/Inferno.
 - **Goalie GAA misread (2026-07-02):** a quote-unaware tag stripper broke on a tooltip's embedded `<br />`, causing GAA to be misread as GA. Debug this class of bug via a temp GH Actions artifact dump, not `web_fetch` (esportsdesk pages don't render meaningfully via plain fetch tooling).
