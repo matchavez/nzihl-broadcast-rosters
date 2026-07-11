@@ -1,6 +1,6 @@
 # memory.md — matchavez/nzihl-broadcast-rosters
 
-Self-context for Claude. README.md is solid and human-facing (install/run instructions, schema) — was corrected 2026-07-11 (stale data-source claim, obsolete initial-scaffold section, stale cron reference, NZWIHL note repointed at the sibling repo). This file adds the automation state, gotchas, and cross-repo wiring README doesn't cover. Last refreshed: 2026-07-11.
+Self-context for Claude. README.md is solid and human-facing (install/run instructions, schema) — was corrected 2026-07-11 (stale data-source claim, obsolete initial-scaffold section, stale cron reference, NZWIHL note repointed at the sibling repo). This file adds the automation state, gotchas, and cross-repo wiring README doesn't cover. Last refreshed: 2026-07-11 (coaching-staff line added).
 
 ## What this repo is
 Daily GitHub Action that renders one A4 roster PDF per upcoming NZIHL series (goalies top, skaters by jersey #, top-3 scorers highlighted, "not yet played" group), pulling live data from esportsdesk, and publishes them as a GitHub Release. Sibling repo **nzwihl-broadcast-rosters** is the same pipeline for the women's league.
@@ -12,6 +12,35 @@ Daily GitHub Action that renders one A4 roster PDF per upcoming NZIHL series (go
 - Cron `30 17 * * *` UTC = 07:30ish NZT depending on DST. The workflow comment was fixed 2026-07-11 (used to say "19:00 UTC", now correctly says 17:30 UTC).
 - Generates PDFs for games within **4 days** (`--within-days 4`) but the committed `boxscores.json` manifest looks **11 days** ahead (`--manifest-within-days 11`) so the hockeyrosters page can show "coming soon" further out than the PDF actually exists. These two windows are intentionally decoupled — don't "fix" one to match the other.
 - Runs unit tests before generating; release is named `rosters-<run number>`.
+
+## Coaching staff line (2026-07-11)
+Roster PDFs now render a compact `HC <name>   AC <name>, <name>` strip under
+each team's header band, above GOALIES. Source is `personnel.cfm` — same
+esportsdesk platform/host as `stats_1team.cfm`, just a different endpoint
+(`admin.esportsdesk.com/leagues/personnel.cfm?clientid=7131&leagueid=35499&teamid=<id>`).
+It returns a simple Title/Name table (Team Staff, Physio, General Manager,
+Head Coach, Assistant Coach ×N, Team Lead) — only Head Coach/Assistant Coach
+rows are kept (`scraper.py`'s `CoachRow`/`parse_coaches`/`fetch_personnel_html`).
+The Name cell holds first/last on separate lines within one `<td>` (a literal
+newline, not a `<br>`) — worth remembering if this ever needs re-parsing.
+
+Design went through one round of Mat's feedback: the first version was a
+"COACHING STAFF" section header (matching GOALIES/SKATERS style) with two
+stacked lines. Mat: "narrow this quite a bit... lose Coaching Staff, lead
+each with HC and AC, and get it onto one line." Current version does that —
+see `layout.py`'s `draw_team`, right after the header-band `cur_y` line —
+and still auto-shrinks + ellipsis-truncates as a safety net, since the very
+first side-by-side attempt (before that safety net existed) clipped off the
+page edge on a team with long assistant-coach names.
+
+Wiring: `cli.py`'s `build_series_pdf` calls a `_fetch_coaches()` helper
+that's best-effort (`try/except -> []`) so a `personnel.cfm` hiccup can't
+fail an otherwise-good roster PDF. `build_roster_pdf`'s `away_coaches`/
+`home_coaches` kwargs default to `None` (→ no line drawn), so this is a
+backward-compatible addition, not a breaking one.
+
+Ported in lockstep to the NZWIHL sibling (commit 0af589a there) — same
+`personnel.cfm` endpoint works with NZWIHL's `clientid=7132&leagueid=35501`.
 
 ## Known gotchas fixed here (useful if similar bugs resurface)
 - **Month-boundary bug (2026-07-08):** gameid resolution for `last_final_gameid` silently returned null for *all* games whenever the league's last Final fell in the prior calendar month. Ported the fix pre-emptively from nzwihl-broadcast-rosters after it hit NZWIHL/Inferno.
