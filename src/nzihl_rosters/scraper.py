@@ -75,7 +75,7 @@ def _split_first_last(full_name: str) -> tuple[str, str]:
         return (parts[0], parts[1])
     # Two-word surnames like "Hayward Jones" — detect by checking the most common
     # NZIHL multi-word surnames; default to splitting at the last space.
-    multi_word = {"hayward jones"}
+    multi_word = {"hayward jones", "de jonge"}
     tail2 = " ".join(parts[-2:]).lower()
     if tail2 in multi_word:
         return (" ".join(parts[:-2]), " ".join(parts[-2:]))
