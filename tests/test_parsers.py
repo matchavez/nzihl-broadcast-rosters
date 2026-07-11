@@ -156,3 +156,25 @@ def test_schedule_parses_upcoming_only():
     assert fin.start_local.year == 2026
     assert fin.away.short_code == "CRD"
     assert fin.home.short_code == "SCS"
+
+
+def test_coaches_parse_correctly():
+    from nzihl_rosters.scraper import parse_coaches
+    html = (FIXTURES / "personnel_redDevils_min.html").read_text()
+    coaches = parse_coaches(html)
+    # Team Staff / Physio / General Manager / Team Lead are filtered out --
+    # only Head Coach + Assistant Coach are in scope for the roster PDF.
+    assert len(coaches) == 3
+    assert [c.title for c in coaches] == ["Head Coach", "Assistant Coach", "Assistant Coach"]
+
+    head = coaches[0]
+    assert head.first == "Anton" and head.last == "Purver"
+
+    assistants = coaches[1:]
+    assert {(a.first, a.last) for a in assistants} == {("Ivar", "Hoglund"), ("Matt", "Harrop")}
+
+
+def test_coaches_parse_empty_when_none_listed():
+    from nzihl_rosters.scraper import parse_coaches
+    html = (FIXTURES / "personnel_no_coaches_min.html").read_text()
+    assert parse_coaches(html) == []

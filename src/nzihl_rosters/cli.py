@@ -23,7 +23,7 @@ from pathlib import Path
 from .layout import build_roster_pdf, GameInfo
 from .schedule import upcoming_within, group_into_series, expand_to_series, Game, fetch_schedule_html, parse_schedule
 from . import boxscores
-from .scraper import scrape_team
+from .scraper import scrape_team, fetch_personnel_html, parse_coaches
 
 
 def _round_label(start: datetime) -> str:
@@ -59,10 +59,23 @@ def _apply_last_game(skaters: list, team_id: int, team_display_name: str) -> Non
         r.last_g, r.last_a = g, a
 
 
+def _fetch_coaches(team_id: int) -> list:
+    """Best-effort coaching-staff lookup. personnel.cfm is a separate page
+    from stats_1team.cfm -- if it's ever down, slow, or reshaped, a roster
+    PDF should still build with everything except the coaches line rather
+    than fail outright (same philosophy as boxscores.py's manifest writer)."""
+    try:
+        return parse_coaches(fetch_personnel_html(team_id))
+    except Exception:
+        return []
+
+
 def build_series_pdf(series: list[Game], output_dir: Path) -> Path:
     first = series[0]
     away_skaters, away_goalies = scrape_team(first.away.team_id)
     home_skaters, home_goalies = scrape_team(first.home.team_id)
+    away_coaches = _fetch_coaches(first.away.team_id)
+    home_coaches = _fetch_coaches(first.home.team_id)
     # NOTE: the LAST GAME column was removed from the roster PDF (2026-07-02),
     # so we no longer spend an extra fetch per team on _apply_last_game here.
     # The function + its box-score parser/tests are left in place in case the
@@ -78,6 +91,7 @@ def build_series_pdf(series: list[Game], output_dir: Path) -> Path:
         away_team=first.away, away_skaters=away_skaters, away_goalies=away_goalies,
         home_team=first.home, home_skaters=home_skaters, home_goalies=home_goalies,
         game_info=info,
+        away_coaches=away_coaches, home_coaches=home_coaches,
     ))
 
 
