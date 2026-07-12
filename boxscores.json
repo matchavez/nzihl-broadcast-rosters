@@ -38,7 +38,7 @@
       "venue": "Dunedin Ice Stadium",
       "gameid": 2519945,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519945",
-      "in_core_window": false
+      "in_core_window": true
     },
     {
       "date": "2026-07-18",
@@ -64,7 +64,7 @@
       "venue": "Dunedin Ice Stadium",
       "gameid": 2519946,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519946",
-      "in_core_window": false
+      "in_core_window": true
     },
     {
       "date": "2026-07-19",
@@ -77,6 +77,32 @@
       "venue": "Alpine Ice Centre",
       "gameid": 2519948,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519948",
+      "in_core_window": false
+    },
+    {
+      "date": "2026-07-24",
+      "time": "7:00 PM",
+      "datetime": "2026-07-24T19:00:00+12:00",
+      "away": "Pure NZ Admirals",
+      "away_code": "ADM",
+      "home": "SkyCity Stampede",
+      "home_code": "SCS",
+      "venue": "Queenstown Ice Arena",
+      "gameid": 2519949,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519949",
+      "in_core_window": false
+    },
+    {
+      "date": "2026-07-25",
+      "time": "7:00 PM",
+      "datetime": "2026-07-25T19:00:00+12:00",
+      "away": "Pure NZ Admirals",
+      "away_code": "ADM",
+      "home": "SkyCity Stampede",
+      "home_code": "SCS",
+      "venue": "Queenstown Ice Arena",
+      "gameid": 2519950,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519950",
       "in_core_window": false
     }
   ]
