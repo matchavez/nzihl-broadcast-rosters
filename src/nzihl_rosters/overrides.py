@@ -3,6 +3,13 @@
 NZIHL stores some names in the wrong case or shortened. The registry
 below records explicit corrections; `normalize_name` applies them and
 also title-cases names that arrived all-lowercase.
+
+SINGLE SOURCE OF TRUTH (2026-07-13): the constants below are only the
+FALLBACK snapshot. `load_remote_overrides()` fetches the real canonical
+data from nzihl-broadcast-assets/assets/name-overrides.json and replaces
+them in place; called once near the top of cli.main(). If that fetch
+fails, these hardcoded values keep scraping working exactly as before --
+a name-overrides.json outage should never break a scheduled scrape.
 """
 from __future__ import annotations
 
@@ -11,6 +18,13 @@ from __future__ import annotations
 SURNAME_OVERRIDES: dict[tuple[int, str], tuple[str, str | None]] = {
     # No active overrides. Add entries here as NZIHL name issues are flagged.
 }
+
+# Two-word surnames to keep whole when scraper.py's _split_first_last would
+# otherwise naively split at the last space. Referenced there via the
+# `overrides` module object (NOT `from .overrides import MULTI_WORD_SURNAMES`)
+# so a later load_remote_overrides() rebind is actually seen -- a bare import
+# would keep pointing at the object that existed at import time.
+MULTI_WORD_SURNAMES: set[str] = {"hayward jones", "de jonge"}
 
 
 def _smart_title(text: str) -> str:
@@ -55,3 +69,49 @@ def normalize_name(first: str, last: str, team_id: int, jersey: str) -> tuple[st
             first_clean = override_first
 
     return first_clean, last_clean
+
+
+NAME_OVERRIDES_URL = (
+    "https://raw.githubusercontent.com/matchavez/nzihl-broadcast-assets/"
+    "main/assets/name-overrides.json"
+)
+_LEAGUE = "nzihl"
+
+
+def load_remote_overrides(*, timeout: int = 10) -> bool:
+    """Fetch the canonical name-overrides.json (single source of truth across
+    every broadcast-asset repo -- see matchavez/hockey's
+    nzihl_player_name_overrides memory) and replace this module's
+    MULTI_WORD_SURNAMES / SURNAME_OVERRIDES in place.
+
+    Call once near the top of cli.main(), before any scraping starts. On any
+    failure this leaves the hardcoded fallback values above untouched and
+    returns False -- a scheduled scrape must never hard-fail just because
+    this one extra fetch didn't land.
+    """
+    global MULTI_WORD_SURNAMES, SURNAME_OVERRIDES
+    import requests
+
+    try:
+        resp = requests.get(NAME_OVERRIDES_URL, timeout=timeout)
+        resp.raise_for_status()
+        cfg = resp.json()
+    except Exception as exc:  # noqa: BLE001 -- deliberately broad, see docstring
+        print(f"warning: could not fetch name-overrides.json ({exc}); using built-in fallback")
+        return False
+
+    words = cfg.get("multi_word_surnames")
+    if words:
+        MULTI_WORD_SURNAMES = {str(w).lower() for w in words}
+
+    team_jersey = cfg.get("team_jersey_overrides")
+    if team_jersey is not None:
+        merged: dict[tuple[int, str], tuple[str, str | None]] = {}
+        for entry in team_jersey:
+            if entry.get("league") != _LEAGUE:
+                continue
+            key = (int(entry["team_id"]), str(entry["jersey"]))
+            merged[key] = (entry["last"], entry.get("first"))
+        SURNAME_OVERRIDES = merged
+
+    return True
