@@ -60,6 +60,67 @@ stat lines -- see Claude's `nzihl-player-lower-thirds` memory. This repo
 and its NZWIHL sibling are the sole source of season totals for that
 project; `nzihl-season-data` covers *completed game* history instead.
 
+## Skater G/A/PTS now sourced from nzihl-season-data (2026-07-13)
+`stats_export.py` no longer trusts `stats_1team.cfm`'s own G/A/PTS columns
+for skaters -- it fetches `matchavez/nzihl-season-data`'s committed
+`nzihl.json` (`derived.player_game_logs`) and sums each player's
+goals/assists from there instead, falling back to the scraped value if the
+warehouse has no entry for them (0/0 either way, so this is a safe no-op)
+or the fetch fails outright (best-effort, matches the coaches-fetch
+philosophy above -- `scrape_all_teams_stats()` wraps the call in its own
+try/except too, belt-and-suspenders on top of `fetch_player_game_logs()`'s
+own internal one).
+
+**Why this repo still scrapes `stats_1team.cfm` at all:** jersey number,
+position, flag, GP, and PIM aren't derivable from the warehouse (GP in
+particular can't be -- `player_game_logs` only has games a player recorded
+a point in, not every game they dressed for), and the warehouse has no
+concept of a roster at all, just event history. So this is a genuine
+partial migration: the scrape still runs and still drives everything
+except two numbers per skater.
+
+**The matching key is the RAW pre-override scraped name, not the
+corrected display name.** `SkaterRow` grew a `raw_name` field (the exact
+`title="..."` text, before `_split_first_last`/`SURNAME_OVERRIDES`
+touches it) because nzihl-season-data's box-score parser stores names
+verbatim, parenthetical maiden-name/nickname text and all (e.g. Canterbury
+Inferno's "Reagyn Shattock (Niskakoski)"). Normalizing the
+override-*corrected* name ("Reagyn Shattock") would silently miss that
+entry. `_normalize_name()` here (lowercase, alpha-only) intentionally
+mirrors nzihl-season-data's own `parser.normalize_name()` exactly.
+
+**Verification (2026-07-13, before shipping):** checked every skater on
+all 9 NZIHL+NZWIHL teams against a *live, cache-busted* `stats_1team.cfm`
+fetch (the default cached print view can lag real games by up to ~2
+weeks on a low-traffic team page -- use the `stats_1teamV2.cfm` route,
+not `printPage=1`, when re-verifying anything here). G/A/PTS matched
+exactly everywhere once compared against genuinely fresh data.
+
+**PIM and all goalie fields (GP/GAA/SV%/SO/W/L) were evaluated and
+deliberately NOT migrated** -- both failed live verification with real,
+unexplained mismatches, not just rounding noise:
+- PIM: a player's summed `games[].pens[]` durations came out 20 minutes
+  too high vs. live for one specific incident (SCS's Dylan Devlin, a
+  "5 Minutes"+"20 Minutes" major+game-misconduct pair recorded as two
+  rows at the same timestamp) -- the 20 wasn't counted live, most likely
+  because of supplementary discipline (a suspension) that isn't visible
+  anywhere in the box-score data this repo or nzihl-season-data scrapes.
+  A *different* standalone 20-minute major (Botany's Blake Campbell) DID
+  count in full, so this isn't a deterministic "drop all misconducts"
+  rule -- there's no rule derivable from the data alone.
+- Goalies: GAA computed from summed `sa/ga/mp` came out 4.27 vs. live's
+  4.28 for a goalie with a partial-minute game (pulled for an extra
+  attacker) -- a real rounding-methodology mismatch, not sandbox noise.
+  W/L is worse: found real split-goalie games (e.g. Thunder's James
+  Moore/Toby Schuck sharing a game) where ONE goalie gets the decision
+  and the other gets none, and nothing in `games[].goalies[]` says which
+  -- crediting "whichever goalie is listed" would silently misattribute
+  results.
+
+If either of these ever gets revisited, the same live-fresh-data
+verification bar applies -- see this session's evidence before assuming a
+clean formula exists.
+
 ## Known gotchas fixed here (useful if similar bugs resurface)
 - **Month-boundary bug (2026-07-08):** gameid resolution for `last_final_gameid` silently returned null for *all* games whenever the league's last Final fell in the prior calendar month. Ported the fix pre-emptively from nzwihl-broadcast-rosters after it hit NZWIHL/Inferno.
 - **Goalie GAA misread (2026-07-02):** a quote-unaware tag stripper broke on a tooltip's embedded `<br />`, causing GAA to be misread as GA. Debug this class of bug via a temp GH Actions artifact dump, not `web_fetch` (esportsdesk pages don't render meaningfully via plain fetch tooling).
