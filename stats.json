@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-12",
+  "generated_at": "2026-07-15",
   "league": "nzihl",
   "teams": {
     "ADM": {
@@ -1507,6 +1507,18 @@
         },
         {
           "a": 1,
+          "first": "Luc",
+          "flag": "",
+          "g": 0,
+          "gp": 12,
+          "last": "TAILLON",
+          "number": "37",
+          "pim": 2,
+          "position": "F",
+          "pts": 1
+        },
+        {
+          "a": 1,
           "first": "Tristan",
           "flag": "",
           "g": 0,
@@ -1527,18 +1539,6 @@
           "number": "90",
           "pim": 2,
           "position": "D",
-          "pts": 0
-        },
-        {
-          "a": 0,
-          "first": "Luc",
-          "flag": "",
-          "g": 0,
-          "gp": 12,
-          "last": "TAILLON",
-          "number": "37",
-          "pim": 2,
-          "position": "F",
           "pts": 0
         },
         {
