@@ -64,7 +64,7 @@
       "venue": "Queenstown Ice Arena",
       "gameid": 2519949,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519949",
-      "in_core_window": false
+      "in_core_window": true
     },
     {
       "date": "2026-07-25",
@@ -90,7 +90,7 @@
       "venue": "Queenstown Ice Arena",
       "gameid": 2519950,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519950",
-      "in_core_window": false
+      "in_core_window": true
     },
     {
       "date": "2026-07-26",
