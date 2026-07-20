@@ -77,7 +77,7 @@
       "venue": "Paradice Botany",
       "gameid": 2519951,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519951",
-      "in_core_window": false
+      "in_core_window": true
     },
     {
       "date": "2026-07-25",
@@ -103,7 +103,7 @@
       "venue": "Paradice Botany",
       "gameid": 2519952,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519952",
-      "in_core_window": false
+      "in_core_window": true
     }
   ]
 }
