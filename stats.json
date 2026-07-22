@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-19",
+  "generated_at": "2026-07-22",
   "league": "nzihl",
   "teams": {
     "ADM": {
@@ -509,18 +509,6 @@
           "pts": 11
         },
         {
-          "a": 1,
-          "first": "Markus",
-          "flag": "",
-          "g": 9,
-          "gp": 12,
-          "last": "MACDONALD",
-          "number": "15",
-          "pim": 12,
-          "position": "F",
-          "pts": 10
-        },
-        {
           "a": 3,
           "first": "Josh",
           "flag": "",
@@ -529,6 +517,18 @@
           "last": "STEEN",
           "number": "16",
           "pim": 2,
+          "position": "F",
+          "pts": 10
+        },
+        {
+          "a": 1,
+          "first": "Markus",
+          "flag": "",
+          "g": 9,
+          "gp": 12,
+          "last": "MACDONALD",
+          "number": "15",
+          "pim": 12,
           "position": "F",
           "pts": 10
         },
@@ -1434,18 +1434,6 @@
           "pts": 11
         },
         {
-          "a": 5,
-          "first": "Jack",
-          "flag": "",
-          "g": 3,
-          "gp": 15,
-          "last": "LEWIS",
-          "number": "24",
-          "pim": 2,
-          "position": "F",
-          "pts": 8
-        },
-        {
           "a": 4,
           "first": "Morgan",
           "flag": "",
@@ -1456,6 +1444,18 @@
           "pim": 22,
           "position": "D",
           "pts": 7
+        },
+        {
+          "a": 5,
+          "first": "Jack",
+          "flag": "",
+          "g": 3,
+          "gp": 15,
+          "last": "LEWIS",
+          "number": "24",
+          "pim": 2,
+          "position": "F",
+          "pts": 8
         },
         {
           "a": 2,
