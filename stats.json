@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-22",
+  "generated_at": "2026-07-23",
   "league": "nzihl",
   "teams": {
     "ADM": {
@@ -864,7 +864,7 @@
           "l": 0,
           "last": "DUGGAN",
           "min": 0,
-          "number": "91",
+          "number": "-",
           "so": 0,
           "sv_pct": "-",
           "w": 0
@@ -906,7 +906,7 @@
           "l": 4,
           "last": "CAREY",
           "min": 416,
-          "number": "-",
+          "number": "91",
           "so": 0,
           "sv_pct": ".874",
           "w": 3
@@ -1854,18 +1854,6 @@
         },
         {
           "a": 6,
-          "first": "Connor",
-          "flag": "C",
-          "g": 4,
-          "gp": 14,
-          "last": "HARRISON",
-          "number": "8",
-          "pim": 20,
-          "position": "F",
-          "pts": 10
-        },
-        {
-          "a": 6,
           "first": "Ollie",
           "flag": "",
           "g": 2,
@@ -1875,6 +1863,18 @@
           "pim": 8,
           "position": "D",
           "pts": 8
+        },
+        {
+          "a": 6,
+          "first": "Connor",
+          "flag": "C",
+          "g": 4,
+          "gp": 14,
+          "last": "HARRISON",
+          "number": "8",
+          "pim": 20,
+          "position": "F",
+          "pts": 10
         },
         {
           "a": 2,
@@ -1949,6 +1949,18 @@
           "pts": 2
         },
         {
+          "a": 0,
+          "first": "Cameron",
+          "flag": "",
+          "g": 0,
+          "gp": 14,
+          "last": "TREW",
+          "number": "6",
+          "pim": 0,
+          "position": "D",
+          "pts": 0
+        },
+        {
           "a": 1,
           "first": "Josh",
           "flag": "",
@@ -1983,18 +1995,6 @@
           "pim": 0,
           "position": "F",
           "pts": 1
-        },
-        {
-          "a": 0,
-          "first": "Cameron",
-          "flag": "",
-          "g": 0,
-          "gp": 14,
-          "last": "TREW",
-          "number": "6",
-          "pim": 0,
-          "position": "D",
-          "pts": 0
         },
         {
           "a": 0,
