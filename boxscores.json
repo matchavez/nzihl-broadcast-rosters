@@ -2,19 +2,6 @@
   "league": "NZIHL",
   "games": [
     {
-      "date": "2026-07-19",
-      "time": "5:10 PM",
-      "datetime": "2026-07-19T17:10:00+12:00",
-      "away": "SkyCity Stampede",
-      "away_code": "SCS",
-      "home": "Canterbury Red Devils",
-      "home_code": "CRD",
-      "venue": "Alpine Ice Centre",
-      "gameid": 2519948,
-      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519948",
-      "in_core_window": true
-    },
-    {
       "date": "2026-07-24",
       "time": "7:00 PM",
       "datetime": "2026-07-24T19:00:00+12:00",
