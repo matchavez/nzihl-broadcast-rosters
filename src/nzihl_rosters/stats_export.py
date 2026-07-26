@@ -107,6 +107,7 @@ def _skater_dict(row, game_logs: dict) -> dict:
         "a": a,
         "pts": g + a,
         "pim": row.pim,
+        "player_id": row.player_id,
     }
 
 
@@ -124,6 +125,7 @@ def _goalie_dict(row) -> dict:
         "so": row.so,
         "w": row.w,
         "l": row.l,
+        "player_id": row.player_id,
     }
 
 
