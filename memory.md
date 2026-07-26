@@ -127,6 +127,18 @@ clean formula exists.
 - **Short codes:** Pure NZ Admirals' legacy `WAA` code was retired in favor of `ADM` (2026-07-10) to match the Style Guide TLA — if you see `WAA` anywhere it's stale.
 - Player names are scraped lowercase; `overrides.py` title-cases via `normalize_name` and only needs explicit `SURNAME_OVERRIDES` entries for non-trivial corrections (keyed by `(team_id, jersey)` so it survives even if the league's own records are wrong). No active overrides as of last check (Henare override was removed 2026-06-16).
 
+## 2026-07-27: player_id added to stats.json
+SkaterRow/GoalieRow (and their stats.json dict output) now carry the esportsdesk `player_id`
+already parsed off the profile-link href for name-splitting -- it just wasn't being kept.
+Built for the new NZIHL/NZWIHL pronunciation-guide system (matchavez/nzihl-broadcast-assets'
+`pronunciations.json`), which needs a stable join key across stats.json, the photo warehouse
+(matchavez/nzihl-player-photos, already keyed by player_id), and the stats-link URL --
+name-string matching was the previous approach and is exactly what name-overrides.json
+exists to patch around. Additive field, no existing consumer's shape changed. Verified
+live: triggered workflow_dispatch after pushing, confirmed player_id populated for all 5
+teams in the freshly-committed stats.json (e.g. Alex Gagnon -> 2470539, matching his real
+rosters_profile.cfm playerID).
+
 ## Related repos
 - **matchavez/nzwihl-broadcast-rosters** — same codebase pattern, separate repo, keep fixes in sync between the two (this repo currently leads on fixes, then ports to the sibling).
 - **matchavez/hockeyrosters** — consumes `boxscores.json`/release PDFs to render the talent-facing download page.
