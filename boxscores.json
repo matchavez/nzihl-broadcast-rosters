@@ -2,19 +2,6 @@
   "league": "NZIHL",
   "games": [
     {
-      "date": "2026-07-24",
-      "time": "7:00 PM",
-      "datetime": "2026-07-24T19:00:00+12:00",
-      "away": "Pure NZ Admirals",
-      "away_code": "ADM",
-      "home": "SkyCity Stampede",
-      "home_code": "SCS",
-      "venue": "Queenstown Ice Arena",
-      "gameid": 2519949,
-      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519949",
-      "in_core_window": true
-    },
-    {
       "date": "2026-07-25",
       "time": "4:45 PM",
       "datetime": "2026-07-25T16:45:00+12:00",
@@ -52,6 +39,58 @@
       "gameid": 2519952,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519952",
       "in_core_window": true
+    },
+    {
+      "date": "2026-08-07",
+      "time": "7:00 PM",
+      "datetime": "2026-08-07T19:00:00+12:00",
+      "away": "Pure NZ Admirals",
+      "away_code": "ADM",
+      "home": "Dunedin Thunder",
+      "home_code": "DUN",
+      "venue": "Dunedin Ice Stadium",
+      "gameid": null,
+      "boxscore_url": null,
+      "in_core_window": false
+    },
+    {
+      "date": "2026-08-07",
+      "time": "7:00 PM",
+      "datetime": "2026-08-07T19:00:00+12:00",
+      "away": "Canterbury Red Devils",
+      "away_code": "CRD",
+      "home": "SkyCity Stampede",
+      "home_code": "SCS",
+      "venue": "Queenstown Ice Arena",
+      "gameid": null,
+      "boxscore_url": null,
+      "in_core_window": false
+    },
+    {
+      "date": "2026-08-08",
+      "time": "6:00 PM",
+      "datetime": "2026-08-08T18:00:00+12:00",
+      "away": "Pure NZ Admirals",
+      "away_code": "ADM",
+      "home": "Dunedin Thunder",
+      "home_code": "DUN",
+      "venue": "Dunedin Ice Stadium",
+      "gameid": null,
+      "boxscore_url": null,
+      "in_core_window": false
+    },
+    {
+      "date": "2026-08-08",
+      "time": "7:00 PM",
+      "datetime": "2026-08-08T19:00:00+12:00",
+      "away": "Canterbury Red Devils",
+      "away_code": "CRD",
+      "home": "SkyCity Stampede",
+      "home_code": "SCS",
+      "venue": "Queenstown Ice Arena",
+      "gameid": null,
+      "boxscore_url": null,
+      "in_core_window": false
     }
   ]
 }
