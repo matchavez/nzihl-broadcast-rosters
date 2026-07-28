@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-26",
+  "generated_at": "2026-07-28",
   "league": "nzihl",
   "teams": {
     "ADM": {
@@ -650,19 +650,6 @@
           "pts": 6
         },
         {
-          "a": 3,
-          "first": "Ritchie",
-          "flag": "",
-          "g": 2,
-          "gp": 16,
-          "last": "HOPKINSON",
-          "number": "63",
-          "pim": 0,
-          "player_id": 1939434,
-          "position": "F",
-          "pts": 5
-        },
-        {
           "a": 4,
           "first": "Kyle",
           "flag": "",
@@ -672,6 +659,19 @@
           "number": "5",
           "pim": 14,
           "player_id": 1805738,
+          "position": "F",
+          "pts": 5
+        },
+        {
+          "a": 3,
+          "first": "Ritchie",
+          "flag": "",
+          "g": 2,
+          "gp": 16,
+          "last": "HOPKINSON",
+          "number": "63",
+          "pim": 0,
+          "player_id": 1939434,
           "position": "F",
           "pts": 5
         },
@@ -689,19 +689,6 @@
           "pts": 4
         },
         {
-          "a": 3,
-          "first": "Kyle",
-          "flag": "",
-          "g": 0,
-          "gp": 16,
-          "last": "JONSSON",
-          "number": "18",
-          "pim": 0,
-          "player_id": 1953577,
-          "position": "F",
-          "pts": 3
-        },
-        {
           "a": 1,
           "first": "Lennart",
           "flag": "",
@@ -713,6 +700,19 @@
           "player_id": 1936917,
           "position": "D",
           "pts": 2
+        },
+        {
+          "a": 3,
+          "first": "Kyle",
+          "flag": "",
+          "g": 0,
+          "gp": 16,
+          "last": "JONSSON",
+          "number": "18",
+          "pim": 0,
+          "player_id": 1953577,
+          "position": "F",
+          "pts": 3
         },
         {
           "a": 1,
@@ -1955,19 +1955,6 @@
           "pts": 22
         },
         {
-          "a": 11,
-          "first": "Stefan",
-          "flag": "A",
-          "g": 3,
-          "gp": 16,
-          "last": "AMSTON",
-          "number": "3",
-          "pim": 16,
-          "player_id": 2012738,
-          "position": "D",
-          "pts": 14
-        },
-        {
           "a": 9,
           "first": "Jackson",
           "flag": "",
@@ -1978,6 +1965,19 @@
           "pim": 8,
           "player_id": 2016315,
           "position": "F",
+          "pts": 14
+        },
+        {
+          "a": 11,
+          "first": "Stefan",
+          "flag": "A",
+          "g": 3,
+          "gp": 16,
+          "last": "AMSTON",
+          "number": "3",
+          "pim": 16,
+          "player_id": 2012738,
+          "position": "D",
           "pts": 14
         },
         {
@@ -2020,6 +2020,19 @@
           "pts": 10
         },
         {
+          "a": 3,
+          "first": "Mitchell",
+          "flag": "A",
+          "g": 2,
+          "gp": 12,
+          "last": "FREAR",
+          "number": "16",
+          "pim": 0,
+          "player_id": 2073065,
+          "position": "D",
+          "pts": 5
+        },
+        {
           "a": 1,
           "first": "Axel",
           "flag": "",
@@ -2043,19 +2056,6 @@
           "pim": 4,
           "player_id": 2015796,
           "position": "F",
-          "pts": 5
-        },
-        {
-          "a": 3,
-          "first": "Mitchell",
-          "flag": "A",
-          "g": 2,
-          "gp": 12,
-          "last": "FREAR",
-          "number": "16",
-          "pim": 0,
-          "player_id": 2073065,
-          "position": "D",
           "pts": 5
         },
         {
