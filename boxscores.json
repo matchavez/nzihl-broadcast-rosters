@@ -49,8 +49,8 @@
       "home": "Dunedin Thunder",
       "home_code": "DUN",
       "venue": "Dunedin Ice Stadium",
-      "gameid": null,
-      "boxscore_url": null,
+      "gameid": 2519981,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519981",
       "in_core_window": false
     },
     {
@@ -62,8 +62,8 @@
       "home": "SkyCity Stampede",
       "home_code": "SCS",
       "venue": "Queenstown Ice Arena",
-      "gameid": null,
-      "boxscore_url": null,
+      "gameid": 2519979,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519979",
       "in_core_window": false
     },
     {
@@ -75,8 +75,8 @@
       "home": "Dunedin Thunder",
       "home_code": "DUN",
       "venue": "Dunedin Ice Stadium",
-      "gameid": null,
-      "boxscore_url": null,
+      "gameid": 2519982,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519982",
       "in_core_window": false
     },
     {
@@ -88,8 +88,8 @@
       "home": "SkyCity Stampede",
       "home_code": "SCS",
       "venue": "Queenstown Ice Arena",
-      "gameid": null,
-      "boxscore_url": null,
+      "gameid": 2519980,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519980",
       "in_core_window": false
     }
   ]
