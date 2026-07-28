@@ -60,9 +60,30 @@ class Game:
 
 
 def fetch_schedule_html(client_id: int = 7131, league_id: int = 35499) -> str:
+    """Merge the default page with explicit current+next-2-month pages.
+
+    2026-07-28 fix: the default un-parameterized page is scoped to roughly the
+    site's current server month and does NOT include games starting after
+    month-end -- confirmed missing the entire August playoff bracket (semis
+    Aug 7-8, grand final Aug 21-24) while scraped in late July, even though
+    those games were well within both the PDF and manifest lookahead windows.
+    Concatenating in the explicit-month page (see fetch_schedule_html_for_month,
+    confirmed reliable 2026-07-08) for this month and the next two closes that
+    gap without touching any window-day math. parse_schedule() dedupes the
+    resulting overlap.
+    """
     params = {"clientid": client_id, "leagueid": league_id}
     url = f"{SCHEDULE_URL}?{urlencode(params)}"
-    return fetch(url)
+    pages = [fetch(url)]
+    now = datetime.now(NZ_TZ)
+    for offset in (0, 1, 2):
+        m = now.month + offset
+        y = now.year
+        while m > 12:
+            m -= 12
+            y += 1
+        pages.append(fetch_schedule_html_for_month(client_id, league_id, month_id=m, year_id=y))
+    return "\n".join(pages)
 
 
 def fetch_schedule_html_for_month(client_id: int = 7131, league_id: int = 35499, *,
@@ -107,6 +128,18 @@ _TIME_RE = re.compile(r"\b(\d{1,2}):(\d{2})\s*(AM|PM)\b", re.IGNORECASE)
 
 # Integers in row text — used to recover scores from finals.
 _INT_RE = re.compile(r"\b(\d{1,3})\b")
+
+# "Aug. 7, 2026 @ 7:00 PM" — full inline date+time, as used by the explicit
+# monthID/yearID page (schedule.py's default fetch instead relies on <h5> day
+# headers; the two admin.esportsdesk.com templates aren't the same). Confirmed
+# 2026-07-28: the August playoff bracket page uses this inline format with NO
+# <h5> day headers at all, so the header-block parser below finds zero rows on
+# it unless we also handle this layout.
+_INLINE_DATE_RE = re.compile(
+    r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+"
+    r"(\d{1,2}),\s+(\d{4})\s*@\s*(\d{1,2}):(\d{2})\s*(AM|PM)",
+    re.IGNORECASE,
+)
 
 _MONTHS = {m.lower(): i+1 for i, m in enumerate(
     ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
@@ -196,7 +229,59 @@ def parse_schedule(html: str, *, year_hint: int | None = None) -> list[Game]:
                 games.append(Game(start_local, away, home, False))
             # rows without time and without a boxscore link are skipped
 
-    return games
+    # Second pass: rows carrying their own inline "Mon. D, YYYY @ H:MM AM/PM"
+    # date (the explicit-month/playoff-page template, no <h5> day headers) --
+    # scan the whole document regardless of the header-block pass above. Rows
+    # from the default full-season-page template never contain this inline
+    # pattern (their date only lives in the enclosing <h5>), so this can't
+    # double-count anything the first pass already found; the caller-facing
+    # dedupe below is belt-and-suspenders.
+    for tr_match in _TR_RE.finditer(html):
+        row_html = tr_match.group(1)
+        team_ids = _row_team_ids(row_html)
+        if len(team_ids) < 2:
+            continue
+        away = by_team_id(team_ids[0])
+        home = by_team_id(team_ids[1])
+        if not (away and home):
+            continue
+        stripped = _strip_tags(row_html)
+        date_m = _INLINE_DATE_RE.search(stripped)
+        if not date_m:
+            continue
+        month = _MONTHS[date_m.group(1).lower()]
+        day = int(date_m.group(2))
+        year = int(date_m.group(3))
+        hour = int(date_m.group(4))
+        minute = int(date_m.group(5))
+        ampm = date_m.group(6).upper()
+        if ampm == "PM" and hour != 12:
+            hour += 12
+        if ampm == "AM" and hour == 12:
+            hour = 0
+        is_final = bool(_BOXSCORE_RE.search(row_html))
+        if is_final:
+            start_local = datetime(year, month, day, 12, 0, tzinfo=NZ_TZ)
+            nums = [int(n) for n in _INT_RE.findall(stripped)]
+            away_score = nums[0] if len(nums) >= 1 else None
+            home_score = nums[1] if len(nums) >= 2 else None
+            games.append(Game(start_local, away, home, True, away_score, home_score))
+        else:
+            start_local = datetime(year, month, day, hour, minute, tzinfo=NZ_TZ)
+            games.append(Game(start_local, away, home, False))
+
+    # Dedupe: fetch_schedule_html() now concatenates several overlapping page
+    # fetches (default + explicit current/next months), so the same game can
+    # appear more than once. Keep first occurrence, keyed on the fields that
+    # identify a single real-world game.
+    seen: set[tuple[int, int, datetime, bool]] = set()
+    deduped: list[Game] = []
+    for g in games:
+        key = (g.away.team_id, g.home.team_id, g.start_local, g.is_final)
+        if key not in seen:
+            seen.add(key)
+            deduped.append(g)
+    return deduped
 
 
 def upcoming_within(days: int, html: str | None = None) -> list[Game]:
