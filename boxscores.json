@@ -12,7 +12,7 @@
       "venue": "Queenstown Ice Arena",
       "gameid": 2519979,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519979",
-      "in_core_window": false
+      "in_core_window": true
     },
     {
       "date": "2026-08-07",
@@ -25,7 +25,7 @@
       "venue": "Dunedin Ice Stadium",
       "gameid": 2519981,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519981",
-      "in_core_window": false
+      "in_core_window": true
     },
     {
       "date": "2026-08-08",
@@ -38,7 +38,7 @@
       "venue": "Dunedin Ice Stadium",
       "gameid": 2519982,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519982",
-      "in_core_window": false
+      "in_core_window": true
     },
     {
       "date": "2026-08-08",
@@ -51,7 +51,7 @@
       "venue": "Queenstown Ice Arena",
       "gameid": 2519980,
       "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519980",
-      "in_core_window": false
+      "in_core_window": true
     }
   ]
 }
