@@ -49,8 +49,8 @@
       "home": "SkyCity Stampede",
       "home_code": "SCS",
       "venue": "Queenstown Ice Arena",
-      "gameid": 2519980,
-      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519980",
+      "gameid": null,
+      "boxscore_url": null,
       "in_core_window": true
     }
   ]
