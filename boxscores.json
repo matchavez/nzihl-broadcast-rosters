@@ -52,6 +52,45 @@
       "gameid": null,
       "boxscore_url": null,
       "in_core_window": true
+    },
+    {
+      "date": "2026-08-21",
+      "time": "7:00 PM",
+      "datetime": "2026-08-21T19:00:00+12:00",
+      "away": "Dunedin Thunder",
+      "away_code": "DUN",
+      "home": "SkyCity Stampede",
+      "home_code": "SCS",
+      "venue": "Queenstown Ice Arena",
+      "gameid": null,
+      "boxscore_url": null,
+      "in_core_window": false
+    },
+    {
+      "date": "2026-08-22",
+      "time": "7:00 PM",
+      "datetime": "2026-08-22T19:00:00+12:00",
+      "away": "Dunedin Thunder",
+      "away_code": "DUN",
+      "home": "SkyCity Stampede",
+      "home_code": "SCS",
+      "venue": "Queenstown Ice Arena",
+      "gameid": 2519983,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519983",
+      "in_core_window": false
+    },
+    {
+      "date": "2026-08-23",
+      "time": "7:00 PM",
+      "datetime": "2026-08-23T19:00:00+12:00",
+      "away": "Dunedin Thunder",
+      "away_code": "DUN",
+      "home": "SkyCity Stampede",
+      "home_code": "SCS",
+      "venue": "Queenstown Ice Arena",
+      "gameid": 2519984,
+      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519984",
+      "in_core_window": false
     }
   ]
 }
