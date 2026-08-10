@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-08",
+  "generated_at": "2026-08-10",
   "league": "nzihl",
   "teams": {
     "ADM": {
@@ -572,7 +572,7 @@
           "pts": 11
         },
         {
-          "a": 3,
+          "a": 4,
           "first": "Josh",
           "flag": "",
           "g": 7,
@@ -582,7 +582,7 @@
           "pim": 2,
           "player_id": 1937027,
           "position": "F",
-          "pts": 10
+          "pts": 11
         },
         {
           "a": 6,
@@ -663,7 +663,7 @@
           "pts": 5
         },
         {
-          "a": 3,
+          "a": 2,
           "first": "Ritchie",
           "flag": "",
           "g": 2,
@@ -673,7 +673,7 @@
           "pim": 0,
           "player_id": 1939434,
           "position": "F",
-          "pts": 5
+          "pts": 4
         },
         {
           "a": 2,
@@ -689,7 +689,7 @@
           "pts": 4
         },
         {
-          "a": 1,
+          "a": 2,
           "first": "Lennart",
           "flag": "",
           "g": 1,
@@ -699,7 +699,7 @@
           "pim": 16,
           "player_id": 1936917,
           "position": "D",
-          "pts": 2
+          "pts": 3
         },
         {
           "a": 3,
@@ -1491,7 +1491,7 @@
           "pts": 37
         },
         {
-          "a": 22,
+          "a": 23,
           "first": "Ian",
           "flag": "A",
           "g": 12,
@@ -1501,10 +1501,10 @@
           "pim": 8,
           "player_id": 2012496,
           "position": "F",
-          "pts": 34
+          "pts": 35
         },
         {
-          "a": 9,
+          "a": 10,
           "first": "Chris",
           "flag": "",
           "g": 9,
@@ -1514,10 +1514,10 @@
           "pim": 8,
           "player_id": 2470973,
           "position": "F",
-          "pts": 18
+          "pts": 19
         },
         {
-          "a": 9,
+          "a": 10,
           "first": "Joe",
           "flag": "A",
           "g": 8,
@@ -1527,7 +1527,7 @@
           "pim": 10,
           "player_id": 2016867,
           "position": "F",
-          "pts": 17
+          "pts": 18
         },
         {
           "a": 9,
@@ -1556,7 +1556,7 @@
           "pts": 7
         },
         {
-          "a": 5,
+          "a": 4,
           "first": "Jack",
           "flag": "",
           "g": 5,
@@ -1566,7 +1566,7 @@
           "pim": 2,
           "player_id": 2012682,
           "position": "F",
-          "pts": 10
+          "pts": 9
         },
         {
           "a": 2,
@@ -1903,20 +1903,20 @@
       ],
       "skaters": [
         {
-          "a": 22,
+          "a": 24,
           "first": "Conner",
           "flag": "IM",
-          "g": 25,
+          "g": 24,
           "gp": 14,
           "last": "JEAN",
           "number": "11",
           "pim": 10,
           "player_id": 2166971,
           "position": "F",
-          "pts": 47
+          "pts": 48
         },
         {
-          "a": 26,
+          "a": 24,
           "first": "Lachlan",
           "flag": "",
           "g": 16,
@@ -1926,10 +1926,10 @@
           "pim": 4,
           "player_id": 2070139,
           "position": "F",
-          "pts": 42
+          "pts": 40
         },
         {
-          "a": 16,
+          "a": 17,
           "first": "Max",
           "flag": "IM",
           "g": 10,
@@ -1939,10 +1939,10 @@
           "pim": 10,
           "player_id": 2169088,
           "position": "D",
-          "pts": 26
+          "pts": 27
         },
         {
-          "a": 18,
+          "a": 20,
           "first": "Dylan",
           "flag": "",
           "g": 6,
@@ -1952,10 +1952,10 @@
           "pim": 25,
           "player_id": 2012888,
           "position": "F",
-          "pts": 24
+          "pts": 26
         },
         {
-          "a": 10,
+          "a": 12,
           "first": "Jackson",
           "flag": "",
           "g": 6,
@@ -1965,23 +1965,23 @@
           "pim": 8,
           "player_id": 2016315,
           "position": "F",
-          "pts": 16
+          "pts": 18
         },
         {
-          "a": 12,
+          "a": 13,
           "first": "Stefan",
           "flag": "A",
-          "g": 4,
+          "g": 5,
           "gp": 16,
           "last": "AMSTON",
           "number": "3",
           "pim": 16,
           "player_id": 2012738,
           "position": "D",
-          "pts": 16
+          "pts": 18
         },
         {
-          "a": 6,
+          "a": 8,
           "first": "Maxwell",
           "flag": "",
           "g": 6,
@@ -1991,10 +1991,10 @@
           "pim": 16,
           "player_id": 2072383,
           "position": "F",
-          "pts": 12
+          "pts": 14
         },
         {
-          "a": 7,
+          "a": 8,
           "first": "Ollie",
           "flag": "",
           "g": 3,
@@ -2004,7 +2004,7 @@
           "pim": 8,
           "player_id": 2050431,
           "position": "D",
-          "pts": 10
+          "pts": 11
         },
         {
           "a": 6,
@@ -2020,7 +2020,7 @@
           "pts": 10
         },
         {
-          "a": 3,
+          "a": 5,
           "first": "Mitchell",
           "flag": "A",
           "g": 3,
@@ -2030,7 +2030,7 @@
           "pim": 0,
           "player_id": 2073065,
           "position": "D",
-          "pts": 6
+          "pts": 8
         },
         {
           "a": 1,
@@ -2098,7 +2098,7 @@
           "pts": 2
         },
         {
-          "a": 0,
+          "a": 1,
           "first": "Cameron",
           "flag": "",
           "g": 0,
@@ -2108,7 +2108,7 @@
           "pim": 2,
           "player_id": 2073093,
           "position": "D",
-          "pts": 0
+          "pts": 1
         },
         {
           "a": 1,
