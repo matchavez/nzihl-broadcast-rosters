@@ -2,32 +2,6 @@
   "league": "NZIHL",
   "games": [
     {
-      "date": "2026-08-07",
-      "time": "7:00 PM",
-      "datetime": "2026-08-07T19:00:00+12:00",
-      "away": "Canterbury Red Devils",
-      "away_code": "CRD",
-      "home": "SkyCity Stampede",
-      "home_code": "SCS",
-      "venue": "Queenstown Ice Arena",
-      "gameid": 2519979,
-      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519979",
-      "in_core_window": true
-    },
-    {
-      "date": "2026-08-07",
-      "time": "7:00 PM",
-      "datetime": "2026-08-07T19:00:00+12:00",
-      "away": "Pure NZ Admirals",
-      "away_code": "ADM",
-      "home": "Dunedin Thunder",
-      "home_code": "DUN",
-      "venue": "Dunedin Ice Stadium",
-      "gameid": 2519981,
-      "boxscore_url": "https://admin.esportsdesk.com/leagues/hockey_boxscores.cfm?clientid=7131&leagueid=35499&gameid=2519981",
-      "in_core_window": true
-    },
-    {
       "date": "2026-08-08",
       "time": "6:00 PM",
       "datetime": "2026-08-08T18:00:00+12:00",
