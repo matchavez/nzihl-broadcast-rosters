@@ -129,3 +129,38 @@ def test_scrape_all_teams_stats_degrades_gracefully_when_warehouse_fetch_fails(m
     # if it does, this call raises and the test fails.
     out = stats_export.scrape_all_teams_stats()
     assert len(out) == len(TEAMS)
+
+
+def test_scrape_all_teams_stats_keeps_previous_data_on_empty_scrape(monkeypatch):
+    """A team that scrapes 0 skaters/0 goalies without raising (e.g. an
+    esportsdesk page-shape change the parser doesn't handle) must not
+    silently overwrite a previous snapshot that had real players -- that's
+    the actual failure mode that wiped stats.json on 2026-08-12. Confirmed
+    by keeping the prior snapshot instead of writing the empty result."""
+    prev_crd = {"team_id": 675633, "display_name": "Canterbury Red Devils",
+                "skaters": [{"number": "9", "first": "Test", "last": "Player"}],
+                "goalies": [], "coaches": []}
+
+    def fake_scrape_team_stats(team, client_id, league_id, game_logs):
+        return {"team_id": team.team_id, "display_name": team.display_name,
+                "skaters": [], "goalies": [], "coaches": []}
+
+    monkeypatch.setattr(stats_export, "fetch_player_game_logs", lambda: {})
+    monkeypatch.setattr(stats_export, "scrape_team_stats", fake_scrape_team_stats)
+    out = stats_export.scrape_all_teams_stats(previous_teams_stats={"CRD": prev_crd})
+    assert out["CRD"] == prev_crd
+
+
+def test_scrape_all_teams_stats_writes_empty_when_no_previous_data(monkeypatch):
+    """A genuinely new team (or a first-ever run) with 0 skaters/0 goalies and
+    no prior snapshot to fall back on still writes the empty result -- the
+    guard only kicks in when it would clobber real prior data."""
+    def fake_scrape_team_stats(team, client_id, league_id, game_logs):
+        return {"team_id": team.team_id, "display_name": team.display_name,
+                "skaters": [], "goalies": [], "coaches": []}
+
+    monkeypatch.setattr(stats_export, "fetch_player_game_logs", lambda: {})
+    monkeypatch.setattr(stats_export, "scrape_team_stats", fake_scrape_team_stats)
+    out = stats_export.scrape_all_teams_stats(previous_teams_stats={})
+    assert out["CRD"]["skaters"] == []
+    assert out["CRD"]["goalies"] == []

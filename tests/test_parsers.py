@@ -41,6 +41,30 @@ def test_skaters_parse_correctly():
     assert barton.gp == 0
 
 
+def test_skaters_survive_a_decoy_team_totals_row_before_the_real_table():
+    """Regression test for the 2026-08-12 stats.json wipe: esportsdesk was
+    observed rendering a decoy summary "TEAM TOTALS" row (in its own near-
+    empty table) immediately after the PLAYER STATISTICS header, before the
+    real per-player table. A block bounded by "up to the first TEAM TOTALS"
+    truncated before the real table ever appeared, so every team scraped 0
+    skaters with no exception raised. The block is now bounded by the next
+    section header instead, so it must span past any number of decoy rows to
+    reach the real one."""
+    html = (FIXTURES / "team_decoy_team_totals.html").read_text()
+    skaters = parse_skaters(html, team_id=675633)
+    by_num = {s.jersey: s for s in skaters}
+    assert set(by_num) == {"88", "7"}
+    assert by_num["88"].last == "GAGNON"
+    assert by_num["7"].last == "HENARE"
+
+    goalies = parse_goalies(html, team_id=675633)
+    assert {g.jersey for g in goalies} == {"52"}
+    # The decoy/real-table split must not leak goalie rows into skaters:
+    # bounding by section header (not TEAM TOTALS) keeps GOALIE STATISTICS
+    # out of the player-stats block entirely.
+    assert "52" not in by_num
+
+
 def test_skaters_parse_correctly_with_extra_columns():
     """Regression test: a stats_1team.cfm revision that inserts a BY (birth
     year) column — and appends P/G, +/-, PPG, etc. — must not shift GP/G/A

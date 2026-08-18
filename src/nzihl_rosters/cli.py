@@ -177,7 +177,10 @@ def main(argv: list[str] | None = None) -> int:
     # PDF/manifest windows above). Best-effort: a scrape hiccup for one team
     # just omits that team this run rather than aborting the whole pipeline.
     try:
-        stats_payload = stats_export.write_stats_json(args.output / "stats.json", league_key="nzihl")
+        stats_payload = stats_export.write_stats_json(
+            args.output / "stats.json", league_key="nzihl",
+            existing_path=Path("stats.json"),  # the repo-root committed snapshot
+        )
         n_teams = len(stats_payload["teams"])
         print(f"    → wrote stats.json ({n_teams}/{len(stats_export.TEAMS)} teams scraped)")
     except Exception as exc:  # noqa: BLE001 — best-effort, never abort the run

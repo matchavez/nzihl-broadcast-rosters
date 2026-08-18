@@ -149,9 +149,21 @@ def scrape_team_stats(team: Team, client_id: int, league_id: int, game_logs: dic
     }
 
 
-def scrape_all_teams_stats(client_id: int = 7131, league_id: int = 35499) -> dict[str, dict]:
-    """Scrape every registered team. Best-effort per team — a failure for one
-    team logs and is skipped rather than aborting the whole export."""
+def scrape_all_teams_stats(
+    client_id: int = 7131,
+    league_id: int = 35499,
+    previous_teams_stats: dict[str, dict] | None = None,
+) -> dict[str, dict]:
+    """Scrape every registered team. Best-effort per team: a failure for one
+    team logs and is skipped rather than aborting the whole export.
+
+    `previous_teams_stats` (the prior run's `teams` dict, if available) guards
+    against a second failure mode beyond an outright exception: a page-shape
+    change on esportsdesk's end can make a team's scrape complete without
+    raising but return zero skaters and zero goalies. A real NZIHL team never
+    actually has an empty roster, so when that happens after a previous run
+    *did* have players for that team, it's treated the same as a scrape
+    failure: log it, keep the previous data on disk, don't overwrite."""
     try:
         game_logs = fetch_player_game_logs()
     except Exception as exc:  # noqa: BLE001 — belt-and-suspenders: fetch_player_game_logs()
@@ -163,9 +175,22 @@ def scrape_all_teams_stats(client_id: int = 7131, league_id: int = 35499) -> dic
     out: dict[str, dict] = {}
     for team in TEAMS.values():
         try:
-            out[team.short_code] = scrape_team_stats(team, client_id, league_id, game_logs)
+            result = scrape_team_stats(team, client_id, league_id, game_logs)
         except Exception as exc:  # noqa: BLE001 — best-effort, one team can't sink the run
             print(f"    ! stats.json: {team.short_code} scrape failed: {exc}")
+            continue
+        prev = (previous_teams_stats or {}).get(team.short_code, {})
+        prev_had_players = bool(prev.get("skaters") or prev.get("goalies"))
+        scraped_empty = not result["skaters"] and not result["goalies"]
+        if scraped_empty and prev_had_players:
+            print(
+                f"    ! stats.json: {team.short_code} scraped 0 skaters/0 goalies "
+                f"but the previous snapshot had players -- likely a page-shape "
+                f"change, not a real roster wipe. Keeping previous data."
+            )
+            out[team.short_code] = prev
+            continue
+        out[team.short_code] = result
     return out
 
 
@@ -175,11 +200,26 @@ def write_stats_json(
     client_id: int = 7131,
     league_id: int = 35499,
     teams_stats: dict[str, dict] | None = None,
+    existing_path=None,
 ) -> dict:
     """Scrape (unless `teams_stats` is pre-supplied, e.g. by a test) and write
-    stats.json. Returns the written payload dict."""
+    stats.json. Returns the written payload dict.
+
+    `existing_path` (mirrors boxscores.write_manifest's own param) is the
+    repo-root COMMITTED stats.json to diff the empty-scrape guard against,
+    not `out_path`, which is a fresh, uncommitted `output/` build directory
+    in CI with nothing to read on a clean checkout. Defaults to `out_path`
+    itself for callers (e.g. tests) that write straight to a path that's
+    also the persisted one."""
     if teams_stats is None:
-        teams_stats = scrape_all_teams_stats(client_id, league_id)
+        existing_path = Path(existing_path) if existing_path is not None else Path(out_path)
+        previous_teams_stats = {}
+        if existing_path.exists():
+            try:
+                previous_teams_stats = json.loads(existing_path.read_text()).get("teams", {})
+            except Exception as exc:  # noqa: BLE001 -- best-effort, a bad prior file must not block a fresh scrape
+                print(f"    ! stats.json: could not read previous snapshot at {existing_path}: {exc}")
+        teams_stats = scrape_all_teams_stats(client_id, league_id, previous_teams_stats)
     payload = {
         "generated_at": date.today().isoformat(),
         "league": league_key,

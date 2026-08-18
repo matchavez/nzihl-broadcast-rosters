@@ -125,8 +125,15 @@ def _split_first_last(full_name: str) -> tuple[str, str]:
 
 
 # Detect the table type by looking for either the SKATERS or GOALIES header.
-_PLAYER_STATS_RE = re.compile(r"PLAYER STATISTICS[\s\S]*?TEAM TOTALS", re.IGNORECASE)
-_GOALIE_STATS_RE = re.compile(r"GOALIE STATISTICS[\s\S]*?TEAM TOTALS", re.IGNORECASE)
+# Bounded by the NEXT section header (or end of document), not by "TEAM
+# TOTALS" text -- esportsdesk has been observed rendering a decoy summary
+# "TEAM TOTALS" row right after the section header, before the real
+# per-player rows, which made a "stop at TEAM TOTALS" regex truncate the
+# block before the real table ever appeared. Section headers are a stable,
+# single-occurrence boundary regardless of how many TEAM TOTALS rows a
+# section contains.
+_PLAYER_STATS_RE = re.compile(r"PLAYER STATISTICS[\s\S]*?(?=GOALIE STATISTICS|\Z)", re.IGNORECASE)
+_GOALIE_STATS_RE = re.compile(r"GOALIE STATISTICS[\s\S]*\Z", re.IGNORECASE)
 
 # Match a table row, capturing the entire row HTML.
 _TR_RE = re.compile(r"<tr[^>]*>([\s\S]*?)</tr>", re.IGNORECASE)

@@ -139,6 +139,66 @@ live: triggered workflow_dispatch after pushing, confirmed player_id populated f
 teams in the freshly-committed stats.json (e.g. Alex Gagnon -> 2470539, matching his real
 rosters_profile.cfm playerID).
 
+## 2026-08-18: stats.json empty-roster fix (decoy "TEAM TOTALS" row + silent-overwrite guard)
+`_PLAYER_STATS_RE`/`_GOALIE_STATS_RE` in `scraper.py` used to stop at the
+first "TEAM TOTALS" text after each section header. esportsdesk was observed
+(2026-08-12) rendering a decoy summary "TEAM TOTALS" row immediately after
+the header, before the real per-player table -- the non-greedy regex
+truncated the block there, `parse_skaters`/`parse_goalies` found zero
+matching rows, and returned `[]` cleanly with no exception. That `[]` then
+overwrote every team's stats.json entry on every scheduled run from
+2026-08-12 through 2026-08-18, with `[skip ci]` masking the degradation
+since an already-empty result diffs as unchanged.
+
+Fixed by bounding each section by the NEXT section header instead of "TEAM
+TOTALS" text at all (`PLAYER STATISTICS` through just before `GOALIE
+STATISTICS`; `GOALIE STATISTICS` through end of document) -- robust to any
+number of decoy rows, since it no longer depends on that text occurring a
+specific number of times. Regression-tested with a synthetic fixture
+(`tests/fixtures/team_decoy_team_totals.html`) reproducing the reported
+decoy-row structure.
+
+**Diagnosis correction, worth remembering:** by the time this was fixed
+(same day), the live esportsdesk pages had reverted to their normal
+single-"TEAM TOTALS"-per-section structure -- the decoy wasn't
+reproducing anymore. A first-pass fix (extend the regex to match up to the
+*last* "TEAM TOTALS" instead of the first) tested clean against a stale
+mental model of the bug but, verified live against all 5 teams' current
+pages, actually regressed: it swallowed the GOALIE STATISTICS table into
+the player-stats block too, since there's no third "TEAM TOTALS" between
+them, double-counting goalies as skaters. Caught only by re-verifying
+against a fresh live fetch instead of trusting the original diagnosis's
+specific offsets. Lesson: a "confirmed live" root-cause writeup from an
+earlier session is a snapshot, not a standing fact -- re-verify against the
+live site before applying its exact proposed fix, especially when the
+target is a third-party page that can change (or revert) between sessions.
+
+Also added a second, independent guard in `stats_export.py`:
+`scrape_all_teams_stats` now takes a `previous_teams_stats` dict and, if a
+team's scrape completes (no exception) but returns 0 skaters/0 goalies
+while the previous snapshot had players, keeps the previous data instead of
+overwriting -- a real NZIHL team essentially never has an empty roster, so
+this is a safe "did the site's shape change, or did the roster actually go
+to zero" heuristic. `write_stats_json` gained an `existing_path` param
+(mirrors `boxscores.write_manifest`'s own param) pointing at the repo-root
+COMMITTED `stats.json`, not the fresh `output/` build dir CI starts from
+each run -- `cli.py`'s call site was updated to pass `Path("stats.json")`
+explicitly. This guard is what should prevent a recurrence of this exact
+failure mode even if esportsdesk's page shape drifts again in a way the
+regex fix doesn't anticipate.
+
+`stats.json` was regenerated for real (ran the fixed pipeline locally
+against live esportsdesk, not hand-edited) as part of this fix rather than
+waiting for the next scheduled run, since the games this was blocking are
+2026-08-21/22/23 -- all 5 teams' full skater/goalie/coach lists confirmed
+present, spot-checked against named players/jerseys from the original bug
+report (e.g. Dunedin Thunder's Luke Stegmann #93, Cole Beckstead #88,
+Samuel Loiselle #72 all present and correct).
+
+Not ported to nzwihl-broadcast-rosters yet -- check whether the sibling
+repo's `scraper.py` has the same regex pattern and, if so, apply the same
+fix there per the sync note below.
+
 ## Related repos
 - **matchavez/nzwihl-broadcast-rosters** — same codebase pattern, separate repo, keep fixes in sync between the two (this repo currently leads on fixes, then ports to the sibling).
 - **matchavez/hockeyrosters** — consumes `boxscores.json`/release PDFs to render the talent-facing download page.
