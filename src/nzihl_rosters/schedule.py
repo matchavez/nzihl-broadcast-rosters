@@ -74,15 +74,29 @@ def fetch_schedule_html(client_id: int = 7131, league_id: int = 35499) -> str:
     """
     params = {"clientid": client_id, "leagueid": league_id}
     url = f"{SCHEDULE_URL}?{urlencode(params)}"
-    pages = [fetch(url)]
+    pages = []
+    try:
+        p = fetch(url)
+        print(f"DEBUG fetch default page: len={len(p)}")
+        pages.append(p)
+    except Exception as exc:
+        print(f"DEBUG fetch default page RAISED: {exc!r}")
+        raise
     now = datetime.now(NZ_TZ)
+    print(f"DEBUG now={now.isoformat()}")
     for offset in (0, 1, 2):
         m = now.month + offset
         y = now.year
         while m > 12:
             m -= 12
             y += 1
-        pages.append(fetch_schedule_html_for_month(client_id, league_id, month_id=m, year_id=y))
+        try:
+            p = fetch_schedule_html_for_month(client_id, league_id, month_id=m, year_id=y)
+            print(f"DEBUG fetch month={m} year={y}: len={len(p)}")
+            pages.append(p)
+        except Exception as exc:
+            print(f"DEBUG fetch month={m} year={y} RAISED: {exc!r}")
+            raise
     return "\n".join(pages)
 
 
@@ -188,6 +202,7 @@ def parse_schedule(html: str, *, year_hint: int | None = None) -> list[Game]:
     games: list[Game] = []
 
     headers = list(_DAY_HEADER_RE.finditer(html))
+    print(f"DEBUG parse_schedule: {len(headers)} <h5> day headers found, html len={len(html)}")
     for i, h in enumerate(headers):
         day = int(h.group(1))
         month = _MONTHS[h.group(2).lower()]
@@ -228,6 +243,8 @@ def parse_schedule(html: str, *, year_hint: int | None = None) -> list[Game]:
                 start_local = day_date.replace(hour=hour, minute=minute)
                 games.append(Game(start_local, away, home, False))
             # rows without time and without a boxscore link are skipped
+
+    print(f"DEBUG parse_schedule: {len(games)} rows extracted after header-block pass")
 
     # Second pass: rows carrying their own inline "Mon. D, YYYY @ H:MM AM/PM"
     # date (the explicit-month/playoff-page template, no <h5> day headers) --
@@ -281,6 +298,7 @@ def parse_schedule(html: str, *, year_hint: int | None = None) -> list[Game]:
         if key not in seen:
             seen.add(key)
             deduped.append(g)
+    print(f"DEBUG parse_schedule: {len(games)} total rows before dedup, {len(deduped)} after dedup")
     return deduped
 
 
