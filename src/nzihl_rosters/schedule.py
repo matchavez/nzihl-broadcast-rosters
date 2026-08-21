@@ -67,7 +67,9 @@ FETCH_RETRY_DELAY_SECONDS = 20.0
 def _fetch_schedule_pages(client_id: int, league_id: int) -> list[str]:
     params = {"clientid": client_id, "leagueid": league_id}
     url = f"{SCHEDULE_URL}?{urlencode(params)}"
-    pages = [fetch(url)]
+    p = fetch(url)
+    print(f"DEBUG default page: len={len(p)} snippet={p[:300]!r}")
+    pages = [p]
     now = datetime.now(NZ_TZ)
     for offset in (0, 1, 2):
         m = now.month + offset
@@ -75,7 +77,9 @@ def _fetch_schedule_pages(client_id: int, league_id: int) -> list[str]:
         while m > 12:
             m -= 12
             y += 1
-        pages.append(fetch_schedule_html_for_month(client_id, league_id, month_id=m, year_id=y))
+        p = fetch_schedule_html_for_month(client_id, league_id, month_id=m, year_id=y)
+        print(f"DEBUG month={m} year={y}: len={len(p)} snippet={p[:300]!r}")
+        pages.append(p)
     return pages
 
 
