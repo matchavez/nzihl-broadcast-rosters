@@ -67,9 +67,7 @@ FETCH_RETRY_DELAY_SECONDS = 20.0
 def _fetch_schedule_pages(client_id: int, league_id: int) -> list[str]:
     params = {"clientid": client_id, "leagueid": league_id}
     url = f"{SCHEDULE_URL}?{urlencode(params)}"
-    p = fetch(url)
-    print(f"DEBUG default page: len={len(p)} snippet={p[:300]!r}")
-    pages = [p]
+    pages = [fetch(url)]
     now = datetime.now(NZ_TZ)
     for offset in (0, 1, 2):
         m = now.month + offset
@@ -77,9 +75,7 @@ def _fetch_schedule_pages(client_id: int, league_id: int) -> list[str]:
         while m > 12:
             m -= 12
             y += 1
-        p = fetch_schedule_html_for_month(client_id, league_id, month_id=m, year_id=y)
-        print(f"DEBUG month={m} year={y}: len={len(p)} snippet={p[:300]!r}")
-        pages.append(p)
+        pages.append(fetch_schedule_html_for_month(client_id, league_id, month_id=m, year_id=y))
     return pages
 
 
@@ -106,17 +102,19 @@ def fetch_schedule_html(client_id: int = 7131, league_id: int = 35499) -> str:
     gap without touching any window-day math. parse_schedule() dedupes the
     resulting overlap.
 
-    2026-08-22 fix: a manual off-schedule run (00:34 NZT, 34 minutes after a
-    Grand Final game concluded) got back a 200 OK merged page with zero
-    day-header and zero inline-date matches -- esportsdesk's admin side hand-
-    edits the playoff bracket page after each game (see the "Grand-Final
-    Game N" banner rows in the explicit-month template), and the page can be
-    served mid-edit. fetch() doesn't raise in that case (still a 2xx), so the
-    pipeline silently reported "no upcoming games" instead of retrying. The
-    standing daily cron already runs at 05:30 NZT specifically to give the
-    site time to settle -- this retry covers any run (manual or scheduled)
-    that lands during that window anyway, without touching the window-day
-    math or requiring a rerun."""
+    2026-08-22: added a retry when the merged page has zero day-header and
+    zero inline-date matches at all -- a real 2xx response that carries no
+    parseable game data. Investigated as a possible "esportsdesk admin
+    mid-edit" gap; that turned out to be the wrong diagnosis. The actual
+    cause (confirmed via GitHub Actions run logs) is an AWS WAF JS challenge
+    page -- identical byte-for-byte across every fetch and every retry --
+    served specifically to GitHub Actions' runner IPs, never to a residential
+    IP. A plain `requests` client can't solve that challenge, so retrying the
+    same request just gets the same block every time; this retry is left in
+    place as harmless defense-in-depth for a genuine transient/incomplete
+    response, but it does NOT fix the GitHub Actions failure -- that needs an
+    infrastructure-level change (self-hosted runner, proxy, or vendor
+    allowlisting), not a code-level one. See the 2026-08-22 session notes."""
     for attempt in range(1, FETCH_RETRY_ATTEMPTS + 1):
         pages = _fetch_schedule_pages(client_id, league_id)
         merged = "\n".join(pages)
