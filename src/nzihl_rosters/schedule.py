@@ -27,6 +27,7 @@ status (played vs upcoming) comes from whether the row contains a
 from __future__ import annotations
 
 import re
+import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from html import unescape
@@ -59,6 +60,35 @@ class Game:
         return f"{self.home.short_code}-vs-{self.away.short_code}"
 
 
+FETCH_RETRY_ATTEMPTS = 3
+FETCH_RETRY_DELAY_SECONDS = 20.0
+
+
+def _fetch_schedule_pages(client_id: int, league_id: int) -> list[str]:
+    params = {"clientid": client_id, "leagueid": league_id}
+    url = f"{SCHEDULE_URL}?{urlencode(params)}"
+    pages = [fetch(url)]
+    now = datetime.now(NZ_TZ)
+    for offset in (0, 1, 2):
+        m = now.month + offset
+        y = now.year
+        while m > 12:
+            m -= 12
+            y += 1
+        pages.append(fetch_schedule_html_for_month(client_id, league_id, month_id=m, year_id=y))
+    return pages
+
+
+def _looks_empty(html: str) -> bool:
+    """True if the merged HTML has no day-header and no inline-date game
+    markup at all -- i.e. neither of parse_schedule()'s two extraction passes
+    would find anything to work with. A real schedule page always carries at
+    least one day header for a past played game once the season has started,
+    so this only fires on a genuinely broken/incomplete response, never on a
+    legitimate mid-season or off-season lull."""
+    return not _DAY_HEADER_RE.search(html) and not _INLINE_DATE_RE.search(html)
+
+
 def fetch_schedule_html(client_id: int = 7131, league_id: int = 35499) -> str:
     """Merge the default page with explicit current+next-2-month pages.
 
@@ -71,33 +101,28 @@ def fetch_schedule_html(client_id: int = 7131, league_id: int = 35499) -> str:
     confirmed reliable 2026-07-08) for this month and the next two closes that
     gap without touching any window-day math. parse_schedule() dedupes the
     resulting overlap.
-    """
-    params = {"clientid": client_id, "leagueid": league_id}
-    url = f"{SCHEDULE_URL}?{urlencode(params)}"
-    pages = []
-    try:
-        p = fetch(url)
-        print(f"DEBUG fetch default page: len={len(p)}")
-        pages.append(p)
-    except Exception as exc:
-        print(f"DEBUG fetch default page RAISED: {exc!r}")
-        raise
-    now = datetime.now(NZ_TZ)
-    print(f"DEBUG now={now.isoformat()}")
-    for offset in (0, 1, 2):
-        m = now.month + offset
-        y = now.year
-        while m > 12:
-            m -= 12
-            y += 1
-        try:
-            p = fetch_schedule_html_for_month(client_id, league_id, month_id=m, year_id=y)
-            print(f"DEBUG fetch month={m} year={y}: len={len(p)}")
-            pages.append(p)
-        except Exception as exc:
-            print(f"DEBUG fetch month={m} year={y} RAISED: {exc!r}")
-            raise
-    return "\n".join(pages)
+
+    2026-08-22 fix: a manual off-schedule run (00:34 NZT, 34 minutes after a
+    Grand Final game concluded) got back a 200 OK merged page with zero
+    day-header and zero inline-date matches -- esportsdesk's admin side hand-
+    edits the playoff bracket page after each game (see the "Grand-Final
+    Game N" banner rows in the explicit-month template), and the page can be
+    served mid-edit. fetch() doesn't raise in that case (still a 2xx), so the
+    pipeline silently reported "no upcoming games" instead of retrying. The
+    standing daily cron already runs at 05:30 NZT specifically to give the
+    site time to settle -- this retry covers any run (manual or scheduled)
+    that lands during that window anyway, without touching the window-day
+    math or requiring a rerun."""
+    for attempt in range(1, FETCH_RETRY_ATTEMPTS + 1):
+        pages = _fetch_schedule_pages(client_id, league_id)
+        merged = "\n".join(pages)
+        if not _looks_empty(merged) or attempt == FETCH_RETRY_ATTEMPTS:
+            return merged
+        print(f"    ! schedule fetch returned no day-header/inline-date matches at all "
+              f"(attempt {attempt}/{FETCH_RETRY_ATTEMPTS}) -- retrying in "
+              f"{FETCH_RETRY_DELAY_SECONDS:.0f}s in case the source page is mid-edit")
+        time.sleep(FETCH_RETRY_DELAY_SECONDS)
+    raise AssertionError("unreachable")  # loop always returns on its final iteration
 
 
 def fetch_schedule_html_for_month(client_id: int = 7131, league_id: int = 35499, *,
@@ -202,7 +227,6 @@ def parse_schedule(html: str, *, year_hint: int | None = None) -> list[Game]:
     games: list[Game] = []
 
     headers = list(_DAY_HEADER_RE.finditer(html))
-    print(f"DEBUG parse_schedule: {len(headers)} <h5> day headers found, html len={len(html)}")
     for i, h in enumerate(headers):
         day = int(h.group(1))
         month = _MONTHS[h.group(2).lower()]
@@ -243,8 +267,6 @@ def parse_schedule(html: str, *, year_hint: int | None = None) -> list[Game]:
                 start_local = day_date.replace(hour=hour, minute=minute)
                 games.append(Game(start_local, away, home, False))
             # rows without time and without a boxscore link are skipped
-
-    print(f"DEBUG parse_schedule: {len(games)} rows extracted after header-block pass")
 
     # Second pass: rows carrying their own inline "Mon. D, YYYY @ H:MM AM/PM"
     # date (the explicit-month/playoff-page template, no <h5> day headers) --
@@ -298,7 +320,6 @@ def parse_schedule(html: str, *, year_hint: int | None = None) -> list[Game]:
         if key not in seen:
             seen.add(key)
             deduped.append(g)
-    print(f"DEBUG parse_schedule: {len(games)} total rows before dedup, {len(deduped)} after dedup")
     return deduped
 
 
