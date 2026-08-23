@@ -7,8 +7,12 @@ on:
   # ready by Tuesday. boxscores.json also lists games up to 11 days out (no PDF
   # yet) so the hockeyrosters page can show them as 'coming soon' further ahead
   # than the portal (see --manifest-within-days below).
-  schedule:
-    - cron: "30 17 * * *"
+  #
+  # PAUSED for 2026 off-season — 2026-08-24. NZIHL season is over (Grand
+  # Final decided 23 Aug), nothing upcoming to build rosters for. Re-enable
+  # the schedule block below ahead of next season.
+  # schedule:
+  #   - cron: "30 17 * * *"
   workflow_dispatch: {}
 
 permissions:
