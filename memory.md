@@ -1,6 +1,6 @@
 # memory.md — matchavez/nzihl-broadcast-rosters
 
-Self-context for Claude. README.md is solid and human-facing (install/run instructions, schema) — was corrected 2026-07-11 (stale data-source claim, obsolete initial-scaffold section, stale cron reference, NZWIHL note repointed at the sibling repo). This file adds the automation state, gotchas, and cross-repo wiring README doesn't cover. Last refreshed: 2026-07-11 (coaching-staff line added).
+Self-context for Claude. README.md is solid and human-facing (install/run instructions, schema) — was corrected 2026-07-11 (stale data-source claim, obsolete initial-scaffold section, stale cron reference, NZWIHL note repointed at the sibling repo). This file adds the automation state, gotchas, and cross-repo wiring README doesn't cover. Last refreshed: 2026-08-24.
 
 ## What this repo is
 Daily GitHub Action that renders one A4 roster PDF per upcoming NZIHL series (goalies top, skaters by jersey #, top-3 scorers highlighted, "not yet played" group), pulling live data from esportsdesk, and publishes them as a GitHub Release. Sibling repo **nzwihl-broadcast-rosters** is the same pipeline for the women's league.
@@ -9,9 +9,42 @@ Daily GitHub Action that renders one A4 roster PDF per upcoming NZIHL series (go
 `src/nzihl_rosters/{teams,overrides,scraper,schedule,layout,cli}.py`, `tests/` (fixture-driven unit tests), `.github/workflows/build-rosters.yml`, `boxscores.json` (committed gameid manifest, self-pruning >3 days past date).
 
 ## Automation
-- Cron `30 17 * * *` UTC = 07:30ish NZT depending on DST. The workflow comment was fixed 2026-07-11 (used to say "19:00 UTC", now correctly says 17:30 UTC).
+- **Paused for the 2026 off-season as of 2026-08-24** — `.github/workflows/build-rosters.yml`'s `schedule:` block is commented out. `workflow_dispatch` still works for a manual run. Was cron `30 17 * * *` UTC = 07:30ish NZT depending on DST when live.
 - Generates PDFs for games within **4 days** (`--within-days 4`) but the committed `boxscores.json` manifest looks **11 days** ahead (`--manifest-within-days 11`) so the hockeyrosters page can show "coming soon" further out than the PDF actually exists. These two windows are intentionally decoupled — don't "fix" one to match the other.
 - Runs unit tests before generating; release is named `rosters-<run number>`.
+
+## Grand Final: esportsdesk WAF block + manual publishing (2026-08-16 through 2026-08-23)
+esportsdesk added AWS-WAF bot detection that started returning a JS-challenge page (not real
+schedule content) to the **GitHub Actions runner IP specifically** — confirmed via CI log
+diagnostics across multiple `workflow_dispatch` retries, while the identical code from a
+residential IP (Mat's Mac) got through every time. Not fixable at the code level: `schedule.py`
+got a retry-on-empty-response added the same period for a *different*, legitimate transient
+case, but that doesn't help here since the WAF challenge is identical on every attempt, not
+intermittent.
+
+**Mat's call (2026-08-22): leave CI broken, publish rosters manually until after the Grand
+Final, revisit a durable fix afterward.** All three Grand Final games (DUN @ SCS, Aug 21/22/23)
+got hand-built roster PDFs instead of the automated pipeline output — committed straight to the
+repo root rather than published as release assets, and pinned via `PINNED_PDFS` in
+`matchavez/hockeyrosters`'s `index.html` (that repo's `standardUrl` override always wins over
+whatever the "latest" GitHub release contains for that game — see that repo's own notes on why,
+including a 2026-08-22 incident where a stray manual release briefly shadowed a same-day pin
+meant to correct it). Manual-publish method used once, for Game 2: `gh release create <tag>
+<pdf-path>` (tag `rosters-manual-2026-08-22`) — this is the durable way to get a hand-built PDF
+into a real release if a future one-off needs that instead of a repo-root commit + pin.
+
+**Season close-out decision (2026-08-24): the three pinned PDFs stay pinned permanently as the
+historical record.** No pipeline backfill — confirmed the pipeline only builds forward
+(`--within-days`/`--manifest-within-days` are both look-ahead windows), there's no "regenerate
+for a past date" mode, so there's nothing left to reconcile against even if the WAF fully
+clears. Don't re-raise this as an open item.
+
+**WAF status as of 2026-08-23, not fully resolved:** the 17:44 UTC scheduled run that day did
+successfully resolve real gameids for the Aug 22/23 games and scraped stats for 5/5 teams — the
+block looks to have at least partly lifted — but no new *roster PDF release* has actually
+published since run 121 (2026-08-20). Given the pause above, this isn't being chased further
+right now; if the pipeline gets re-enabled next season, don't assume the WAF issue is resolved
+without re-checking a live run first.
 
 ## Coaching staff line (2026-07-11)
 Roster PDFs now render a compact `HC <name>   AC <name>, <name>` strip under
